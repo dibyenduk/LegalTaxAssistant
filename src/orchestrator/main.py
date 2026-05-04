@@ -27,6 +27,30 @@ from agent_framework.foundry import FoundryChatClient
 from agent_framework_foundry_hosting import ResponsesHostServer
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
+# ---------------------------------------------------------------------------
+# OpenTelemetry — tracing setup (Option A: minimal + Option B: custom spans)
+# ---------------------------------------------------------------------------
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.sdk.resources import Resource
+
+# Only configure if APPLICATIONINSIGHTS_CONNECTION_STRING is set (Foundry injects it)
+_appinsights_conn_str = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING", "")
+if _appinsights_conn_str:
+    from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+
+    resource = Resource.create({
+        "service.name": "legal-tax-orchestrator",
+        "service.version": os.environ.get("AGENT_VERSION", "1"),
+    })
+    provider = TracerProvider(resource=resource)
+    exporter = AzureMonitorTraceExporter(connection_string=_appinsights_conn_str)
+    provider.add_span_processor(BatchSpanProcessor(exporter))
+    trace.set_tracer_provider(provider)
+
+tracer = trace.get_tracer("legal-tax-orchestrator", "1.0.0")
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("orchestrator")
 
@@ -65,54 +89,71 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
     Uses synchronous httpx to keep @tool functions simple.
     Returns the text content from the MCP response or an error message.
     """
-    url = _get_toolbox_url()
-    headers = {
-        "Authorization": f"Bearer {_token_provider()}",
-        "Content-Type": "application/json",
-        "Accept": "application/json",
-        "Foundry-Features": "Toolboxes=V1Preview",
-    }
-    payload = {
-        "jsonrpc": "2.0",
-        "id": "1",
-        "method": "tools/call",
-        "params": {"name": tool_name, "arguments": arguments},
-    }
-    logger.info("Calling toolbox MCP: %s with args: %s", tool_name, json.dumps(arguments)[:200])
+    with tracer.start_as_current_span(
+        "toolbox_mcp_call",
+        attributes={
+            "toolbox.tool_name": tool_name,
+            "toolbox.arguments": json.dumps(arguments)[:500],
+            "gen_ai.operation.name": "execute_tool",
+        },
+    ) as span:
+        url = _get_toolbox_url()
+        headers = {
+            "Authorization": f"Bearer {_token_provider()}",
+            "Content-Type": "application/json",
+            "Accept": "application/json",
+            "Foundry-Features": "Toolboxes=V1Preview",
+        }
+        payload = {
+            "jsonrpc": "2.0",
+            "id": "1",
+            "method": "tools/call",
+            "params": {"name": tool_name, "arguments": arguments},
+        }
+        logger.info("Calling toolbox MCP: %s with args: %s", tool_name, json.dumps(arguments)[:200])
 
-    try:
-        with httpx.Client(timeout=60.0) as client:
-            resp = client.post(url, json=payload, headers=headers)
-            resp.raise_for_status()
-            data = resp.json()
+        try:
+            with httpx.Client(timeout=60.0) as client:
+                resp = client.post(url, json=payload, headers=headers)
+                resp.raise_for_status()
+                data = resp.json()
 
-        if "error" in data:
-            err = data["error"]
-            return f"Error from toolbox: {err.get('message', str(err))}"
+            if "error" in data:
+                err = data["error"]
+                error_msg = f"Error from toolbox: {err.get('message', str(err))}"
+                span.set_attribute("toolbox.error", error_msg)
+                span.set_status(trace.StatusCode.ERROR, error_msg)
+                return error_msg
 
-        result = data.get("result", {})
-        content_items = result.get("content", [])
-        texts = []
-        for item in content_items:
-            if item.get("type") == "text":
-                text = item.get("text", "")
-                # Parse and extract just the reply if it's a large JSON blob
-                try:
-                    parsed = json.loads(text)
-                    if isinstance(parsed, dict) and "reply" in parsed:
-                        return parsed["reply"]
-                    texts.append(text[:4000])  # Truncate large responses
-                except (json.JSONDecodeError, TypeError):
-                    texts.append(text[:4000])
+            result = data.get("result", {})
+            content_items = result.get("content", [])
+            texts = []
+            for item in content_items:
+                if item.get("type") == "text":
+                    text = item.get("text", "")
+                    try:
+                        parsed = json.loads(text)
+                        if isinstance(parsed, dict) and "reply" in parsed:
+                            span.set_attribute("toolbox.response_preview", parsed["reply"][:200])
+                            return parsed["reply"]
+                        texts.append(text[:4000])
+                    except (json.JSONDecodeError, TypeError):
+                        texts.append(text[:4000])
 
-        return "\n".join(texts) if texts else "(no content returned)"
+            output = "\n".join(texts) if texts else "(no content returned)"
+            span.set_attribute("toolbox.response_preview", output[:200])
+            return output
 
-    except httpx.HTTPStatusError as e:
-        logger.error("Toolbox HTTP error: %s %s", e.response.status_code, e.response.text[:500])
-        return f"Error calling email service: HTTP {e.response.status_code}"
-    except Exception as e:
-        logger.error("Toolbox call failed: %s", str(e))
-        return f"Error calling email service: {str(e)}"
+        except httpx.HTTPStatusError as e:
+            logger.error("Toolbox HTTP error: %s %s", e.response.status_code, e.response.text[:500])
+            span.set_status(trace.StatusCode.ERROR, f"HTTP {e.response.status_code}")
+            span.set_attribute("toolbox.http_status", e.response.status_code)
+            return f"Error calling email service: HTTP {e.response.status_code}"
+        except Exception as e:
+            logger.error("Toolbox call failed: %s", str(e))
+            span.set_status(trace.StatusCode.ERROR, str(e))
+            span.record_exception(e)
+            return f"Error calling email service: {str(e)}"
 
 
 # ---------------------------------------------------------------------------
@@ -121,26 +162,37 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
 
 def _call_agent(agent_name: str, message: str) -> str:
     """Call a Foundry prompt agent via the Responses API and return its text."""
-    from azure.ai.projects import AIProjectClient
-    client = AIProjectClient(
-        endpoint=os.environ["FOUNDRY_PROJECT_ENDPOINT"],
-        credential=DefaultAzureCredential(),
-    )
-    openai = client.get_openai_client()
-    resp = openai.responses.create(
-        model=MODEL_DEPLOYMENT_NAME,
-        input=message,
-        extra_body={
-            "agent_reference": {"name": agent_name, "type": "agent_reference"}
+    with tracer.start_as_current_span(
+        "invoke_prompt_agent",
+        attributes={
+            "gen_ai.operation.name": "invoke_agent",
+            "gen_ai.agent.name": agent_name,
+            "gen_ai.input.messages": json.dumps([{"role": "user", "content": message[:500]}]),
         },
-    )
-    text_parts: list[str] = []
-    for item in getattr(resp, "output", []):
-        if getattr(item, "type", "") == "message":
-            for part in getattr(item, "content", []):
-                if getattr(part, "type", "") == "output_text":
-                    text_parts.append(getattr(part, "text", ""))
-    return "".join(text_parts) or "(no response)"
+    ) as span:
+        from azure.ai.projects import AIProjectClient
+        client = AIProjectClient(
+            endpoint=os.environ["FOUNDRY_PROJECT_ENDPOINT"],
+            credential=DefaultAzureCredential(),
+        )
+        openai = client.get_openai_client()
+        resp = openai.responses.create(
+            model=MODEL_DEPLOYMENT_NAME,
+            input=message,
+            extra_body={
+                "agent_reference": {"name": agent_name, "type": "agent_reference"}
+            },
+        )
+        text_parts: list[str] = []
+        for item in getattr(resp, "output", []):
+            if getattr(item, "type", "") == "message":
+                for part in getattr(item, "content", []):
+                    if getattr(part, "type", "") == "output_text":
+                        text_parts.append(getattr(part, "text", ""))
+        result = "".join(text_parts) or "(no response)"
+        span.set_attribute("gen_ai.output.messages", json.dumps([{"role": "assistant", "content": result[:500]}]))
+        span.set_attribute("gen_ai.response.id", getattr(resp, "id", ""))
+        return result
 
 
 # ---------------------------------------------------------------------------
@@ -157,8 +209,14 @@ def classify_user(
     to look up the user's role (Requestor, LegalExpert, TaxExpert).
     Returns the user's role and display name.
     """
-    logger.info("classify_user called for %s", user_email)
-    return _call_agent(CLASSIFIER_AGENT, f"Look up the role for user: {user_email}")
+    with tracer.start_as_current_span(
+        "classify_user",
+        attributes={"user.email": user_email, "gen_ai.operation.name": "execute_tool"},
+    ) as span:
+        logger.info("classify_user called for %s", user_email)
+        result = _call_agent(CLASSIFIER_AGENT, f"Look up the role for user: {user_email}")
+        span.set_attribute("user.role_result", result[:200])
+        return result
 
 
 @tool
@@ -176,8 +234,12 @@ def route_to_requestor_agent(
 
     Include the user's email and any relevant context in the message.
     """
-    logger.info("route_to_requestor_agent: %s", message[:100])
-    return _call_agent(REQUESTOR_AGENT, message)
+    with tracer.start_as_current_span(
+        "route_to_requestor_agent",
+        attributes={"gen_ai.operation.name": "execute_tool", "agent.target": REQUESTOR_AGENT},
+    ):
+        logger.info("route_to_requestor_agent: %s", message[:100])
+        return _call_agent(REQUESTOR_AGENT, message)
 
 
 @tool
@@ -193,8 +255,12 @@ def route_to_legal_agent(
 
     Include the expert's email and any relevant context in the message.
     """
-    logger.info("route_to_legal_agent: %s", message[:100])
-    return _call_agent(LEGAL_AGENT, message)
+    with tracer.start_as_current_span(
+        "route_to_legal_agent",
+        attributes={"gen_ai.operation.name": "execute_tool", "agent.target": LEGAL_AGENT},
+    ):
+        logger.info("route_to_legal_agent: %s", message[:100])
+        return _call_agent(LEGAL_AGENT, message)
 
 
 @tool
@@ -210,8 +276,12 @@ def route_to_tax_agent(
 
     Include the expert's email and any relevant context in the message.
     """
-    logger.info("route_to_tax_agent: %s", message[:100])
-    return _call_agent(TAX_AGENT, message)
+    with tracer.start_as_current_span(
+        "route_to_tax_agent",
+        attributes={"gen_ai.operation.name": "execute_tool", "agent.target": TAX_AGENT},
+    ):
+        logger.info("route_to_tax_agent: %s", message[:100])
+        return _call_agent(TAX_AGENT, message)
 
 
 # ---------------------------------------------------------------------------
@@ -226,10 +296,14 @@ def get_current_user() -> str:
     The result is cached in conversation history — do not call again in the
     same session.
     """
-    logger.info("get_current_user called")
-    return _call_toolbox_mcp("WorkIQUser.GetMyDetails", {
-        "select": "displayName,mail,userPrincipalName,jobTitle"
-    })
+    with tracer.start_as_current_span(
+        "get_current_user",
+        attributes={"gen_ai.operation.name": "execute_tool", "toolbox.tool": "WorkIQUser.GetMyDetails"},
+    ):
+        logger.info("get_current_user called")
+        return _call_toolbox_mcp("WorkIQUser.GetMyDetails", {
+            "select": "displayName,mail,userPrincipalName,jobTitle"
+        })
 
 
 @tool
