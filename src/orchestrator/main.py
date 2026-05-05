@@ -561,9 +561,24 @@ attachments**, or says something broad like "find the answer in my stuff" /
 - User says "email", "inbox", "message from" → Workflow A
 - User says "files", "documents", "OneDrive", "SharePoint", "attachments" → Workflow B
 - User says "find the answer" (ambiguous) → Workflow B (broadest coverage)
+- User provides their own answer text directly → Workflow C
 
 Do NOT return raw content to the user. Always draft a proper answer first.
 If no relevant content is found, inform the user and ask for clarification.
+
+## Composite Workflow C: User Provides Their Own Answer
+
+When the expert writes their own answer (not from email or files):
+
+1. **Get assigned questions** — if you do NOT already know the question ID,
+   call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
+   and instruction "List assigned questions for [email]". If there's one question,
+   proceed. If multiple, list them and ask which one they're answering.
+2. **Confirm** — show the user's answer back and ask: "Submit this answer for
+   question '[question text]'?" (ask ONCE only).
+3. **Submit** — on confirmation, call the specialist agent with:
+   "For expert [email]: Use submit_answer to submit the following answer
+   for question_id '[question_id]'. Answer text: [user's answer text]"
 
 ## Submission Rules
 - After drafting an answer, ask the user ONCE if they want to submit it.
