@@ -540,6 +540,9 @@ Include in the message:
 - The user's email
 - What they want to do (create request, add questions, check status, etc.)
 - Any details they provided (question text, question types)
+- IMPORTANT: When the user wants to create a request, tell the RequestorAgent to
+  "Complete the full workflow: create the request, add questions, and call send_request
+  to auto-assign to experts. Do NOT stop after adding questions."
 
 ### LegalExpert → `route_to_legal_agent`
 Include in the message:
