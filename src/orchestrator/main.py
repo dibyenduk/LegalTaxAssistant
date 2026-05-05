@@ -28,28 +28,30 @@ from agent_framework_foundry_hosting import ResponsesHostServer
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 # ---------------------------------------------------------------------------
-# OpenTelemetry — tracing setup (Option A: minimal + Option B: custom spans)
+# OpenTelemetry — custom spans only (Option B)
+# The Foundry agent server runtime already configures its own TracerProvider
+# and exports to App Insights. We only grab a tracer to add custom spans.
 # ---------------------------------------------------------------------------
-from opentelemetry import trace
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import BatchSpanProcessor
-from opentelemetry.sdk.resources import Resource
+try:
+    from opentelemetry import trace
+    tracer = trace.get_tracer("legal-tax-orchestrator", "1.0.0")
+except ImportError:
+    # Fallback: create no-op implementations so span code still runs
+    import contextlib
+    from types import SimpleNamespace
 
-# Only configure if APPLICATIONINSIGHTS_CONNECTION_STRING is set (Foundry injects it)
-_appinsights_conn_str = os.environ.get("APPLICATIONINSIGHTS_CONNECTION_STRING", "")
-if _appinsights_conn_str:
-    from azure.monitor.opentelemetry.exporter import AzureMonitorTraceExporter
+    class _NoOpSpan:
+        def set_attribute(self, *a, **kw): pass
+        def set_status(self, *a, **kw): pass
+        def record_exception(self, *a, **kw): pass
 
-    resource = Resource.create({
-        "service.name": "legal-tax-orchestrator",
-        "service.version": os.environ.get("AGENT_VERSION", "1"),
-    })
-    provider = TracerProvider(resource=resource)
-    exporter = AzureMonitorTraceExporter(connection_string=_appinsights_conn_str)
-    provider.add_span_processor(BatchSpanProcessor(exporter))
-    trace.set_tracer_provider(provider)
+    class _NoOpTracer:
+        @contextlib.contextmanager
+        def start_as_current_span(self, *a, **kw):
+            yield _NoOpSpan()
 
-tracer = trace.get_tracer("legal-tax-orchestrator", "1.0.0")
+    tracer = _NoOpTracer()
+    trace = SimpleNamespace(StatusCode=SimpleNamespace(ERROR=2, OK=0))
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("orchestrator")
@@ -58,7 +60,7 @@ logger = logging.getLogger("orchestrator")
 # Configuration — platform-injected + agent.yaml declared env vars
 # ---------------------------------------------------------------------------
 MODEL_DEPLOYMENT_NAME = os.environ.get("AZURE_AI_MODEL_DEPLOYMENT_NAME",
-                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-4o-mini"))
+                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-5.4"))
 CLASSIFIER_AGENT = os.environ.get("CLASSIFIER_AGENT_NAME", "ClassifierAgent-2")
 REQUESTOR_AGENT = os.environ.get("REQUESTOR_AGENT_NAME", "RequestorAgent-2")
 LEGAL_AGENT = os.environ.get("LEGAL_AGENT_NAME", "LegalAgent-2")
@@ -71,6 +73,71 @@ TAX_AGENT = os.environ.get("TAX_AGENT_NAME", "TaxAgent-2")
 
 _credential = DefaultAzureCredential()
 _token_provider = get_bearer_token_provider(_credential, "https://ai.azure.com/.default")
+
+# Stop-words to remove when auto-fixing $search queries
+_SEARCH_STOP_WORDS = {
+    "do", "we", "need", "to", "update", "our", "the", "a", "an", "is", "are",
+    "was", "were", "be", "been", "being", "have", "has", "had", "does", "did",
+    "will", "would", "could", "should", "may", "might", "shall", "can", "get",
+    "check", "find", "any", "about", "from", "with", "for", "of", "in", "on",
+    "at", "by", "my", "your", "their", "its", "this", "that", "these", "those",
+    "what", "how", "when", "where", "which", "who", "whom", "there", "here",
+    "new", "comply", "if", "it", "not", "no", "yes", "or", "and", "but", "so",
+}
+
+
+def _fix_search_query(query_parameters: str) -> str:
+    """Auto-fix $search queries: extract keywords and join with OR.
+
+    If the agent passes a long sentence as $search (common failure mode),
+    this strips stop-words and joins remaining nouns with OR for broad matching.
+    Leaves $filter and other query types untouched.
+    """
+    import re
+    logger.info("_fix_search_query input: %r", query_parameters[:150])
+
+    # Try multiple quote patterns - the model may use different quoting
+    match = re.search(r'\$search="([^"]*)"', query_parameters)
+    if not match:
+        match = re.search(r"\$search='([^']*)'", query_parameters)
+    if not match:
+        # Try matching escaped quotes (JSON-style)
+        match = re.search(r'\$search=\\"([^\\]*)\\"', query_parameters)
+    if not match:
+        # Try without quotes at all (just grab everything after $search=)
+        match = re.search(r'\$search=(.+?)(?:&|$)', query_parameters)
+    if not match:
+        logger.info("_fix_search_query: no $search pattern found, returning unchanged")
+        return query_parameters
+
+    search_value = match.group(1).strip('"').strip("'")
+    logger.info("_fix_search_query matched: '%s'", search_value)
+
+    # If it already has OR or field targeting (subject:, from:), leave it alone
+    if " OR " in search_value or ":" in search_value:
+        logger.info("_fix_search_query: already has OR or field targeting, skipping")
+        return query_parameters
+
+    # If it's already short (1-2 words), leave it alone
+    words = search_value.split()
+    if len(words) <= 2:
+        logger.info("_fix_search_query: only %d words, skipping", len(words))
+        return query_parameters
+
+    # Extract meaningful keywords (remove stop-words and short words)
+    keywords = [w for w in words if w.lower().rstrip("?.,!") not in _SEARCH_STOP_WORDS and len(w) > 2]
+
+    # Keep at most 4 keywords, join with OR
+    keywords = keywords[:4] if keywords else words[:2]
+    fixed_search = " OR ".join(keywords)
+
+    # Replace in the original query string
+    fixed_query = query_parameters[:match.start(1)] + fixed_search + query_parameters[match.end(1):]
+    # Strip any leftover quotes around the OR expression and re-wrap
+    fixed_query = re.sub(r'\$search="?([^"]*)"?', r'$search="\1"', fixed_query)
+    logger.info("Auto-fixed $search: '%s' -> '%s'", search_value, fixed_search)
+    logger.info("_fix_search_query output: %r", fixed_query[:150])
+    return fixed_query
 
 
 def _get_toolbox_url() -> str:
@@ -322,16 +389,25 @@ def search_emails(
 
 @tool
 def search_emails_query(
-    query_parameters: Annotated[str, "OData query parameters starting with '?'. Examples: '?$search=\"from:alice subject:budget\"', '?$filter=isRead eq false', '?$filter=receivedDateTime ge 2025-01-01T00:00:00Z&$top=25'"],
+    query_parameters: Annotated[str, "OData query parameters starting with '?'. For $search use OR between keywords: '?$search=\"vendor OR contracts OR privacy\"'. Can target fields: '?$search=\"subject:vendor OR body:privacy\"'. For filters: '?$filter=isRead eq false', '?$filter=receivedDateTime ge 2025-01-01T00:00:00Z&$top=25'"],
 ) -> str:
     """Search emails using OData query parameters against Microsoft Graph API.
 
     Faster than natural language search and has no indexing delay.
-    Use $search for keyword/KQL queries (from:, to:, subject:, cc:, bcc:).
+    CRITICAL for $search: Use OR between keywords for broad matching.
+    Think: "What would the email SUBJECT line say?" and extract those nouns.
+    Format: ?$search="word1 OR word2 OR word3"
+    Example: For question about vendor contracts and data privacy, use:
+      ?$search="vendor OR contracts OR privacy"
+    NOT: ?$search="data privacy regulation" (AND logic, too restrictive)
+    You can also target fields: subject:vendor OR body:privacy
     Use $filter for property-based filtering (isRead, receivedDateTime, etc.).
     Note: $search CANNOT be combined with $filter, $orderBy, or $skip.
     """
-    logger.info("search_emails_query: %s", query_parameters[:100])
+    # --- Auto-fix: if the model passed a long $search without OR, extract keywords ---
+    logger.info("search_emails_query INPUT: %r", query_parameters[:150])
+    query_parameters = _fix_search_query(query_parameters)
+    logger.info("search_emails_query OUTPUT: %r", query_parameters[:150])
     return _call_toolbox_mcp("WorkIQMail.SearchMessagesQueryParameters", {
         "queryParameters": query_parameters,
         "preferTextBody": True,
@@ -348,6 +424,22 @@ def get_email_message(
     """
     logger.info("get_email_message: id=%s", message_id)
     return _call_toolbox_mcp("WorkIQMail.GetMessage", {"messageId": message_id})
+
+
+@tool
+def search_m365_content(
+    query: Annotated[str, "Natural language query to search across all M365 content (emails, attachments, OneDrive, SharePoint)"],
+) -> str:
+    """Search across all Microsoft 365 content using WorkIQ Copilot.
+
+    Searches emails, email attachments, OneDrive files, and SharePoint
+    documents in a single semantic query. Returns relevance-ranked results.
+    Use this when the user wants to find information across files and documents,
+    or doesn't know which source contains what they need.
+    Slower than direct email search (up to 30s) but covers all sources.
+    """
+    logger.info("search_m365_content: %s", query[:100])
+    return _call_toolbox_mcp("WorkIQCopilot.Search", {"message": query})
 
 
 # ---------------------------------------------------------------------------
@@ -398,6 +490,67 @@ When the user asks about emails:
 - Use `search_emails` for natural language queries needing relevance ranking
 - Use `get_email_message` to read a full message by ID
 
+### M365 content requests → `search_m365_content`
+When the user asks to search files, documents, OneDrive, SharePoint, or attachments:
+- Use `search_m365_content` for broad semantic search across all M365 content
+
+## Composite Workflow A: Answer Questions from Email
+
+When the user explicitly asks to search their **email/inbox** for an answer:
+
+1. **Search emails (keyword first)** — call `search_emails_query` using OR
+   between keywords so ANY matching word returns results.
+   Think: "What would the email SUBJECT line say?" — pick those nouns.
+   Format: `?$search="word1 OR word2 OR word3"`
+   Use 2-4 keywords joined by OR. Drop verbs (update, check, get, need).
+   Examples:
+   - "Do we need to update vendor contracts for data privacy?" → `?$search="vendor OR contracts OR privacy"`
+   - "What are the new tax filing deadlines?" → `?$search="tax OR filing OR deadlines"`
+   - "Any emails about the merger?" → `?$search="merger"`
+   If no results are returned, fall back to `search_emails` with a broader
+   natural language query using more of the question text.
+2. **Get full email** — call `get_email_message` with the most relevant match's
+   message ID to retrieve the complete body.
+3. **Draft an answer** — synthesize the email content into a clear, professional
+   answer that directly addresses the assigned question. Do NOT just paste the
+   raw email. Extract the relevant information, summarize it, and phrase it as
+   a proper response to the question.
+4. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
+   `route_to_tax_agent` with a message that includes:
+   - The expert's email
+   - The question ID (if known)
+   - Instruction: "Submit the following drafted answer for the question '[question text]'"
+   - The drafted answer text
+   - Source attribution: "Based on email from [sender] dated [date] with subject '[subject]'"
+
+## Composite Workflow B: Answer Questions from Files/M365 Content
+
+When the user asks to search their **files, documents, OneDrive, SharePoint,
+attachments**, or says something broad like "find the answer in my stuff" /
+"check my documents":
+
+1. **Search M365 content** — call `search_m365_content` with key terms extracted
+   from the question text.
+2. **Draft an answer** — synthesize the returned content into a clear, professional
+   answer that directly addresses the assigned question. Do NOT just paste the
+   raw content. Extract the relevant information, summarize it, and phrase it as
+   a proper response to the question.
+3. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
+   `route_to_tax_agent` with a message that includes:
+   - The expert's email
+   - The question ID (if known)
+   - Instruction: "Submit the following drafted answer for the question '[question text]'"
+   - The drafted answer text
+   - Source attribution: "Based on [document title/filename] from [source]"
+
+### Choosing between Workflow A and B:
+- User says "email", "inbox", "message from" → Workflow A
+- User says "files", "documents", "OneDrive", "SharePoint", "attachments" → Workflow B
+- User says "find the answer" (ambiguous) → Workflow B (broadest coverage)
+
+Do NOT return raw content to the user. Always draft a proper answer first.
+If no relevant content is found, inform the user and ask for clarification.
+
 ## Rules
 - NEVER ask the user for their email — always use `get_current_user`.
 - Call `get_current_user` and `classify_user` only ONCE per conversation.
@@ -431,6 +584,7 @@ def main() -> None:
             search_emails,
             search_emails_query,
             get_email_message,
+            search_m365_content,
         ],
         default_options={"store": True},
     )
