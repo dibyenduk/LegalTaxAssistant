@@ -153,6 +153,56 @@ def _fix_search_query(query_parameters: str) -> str:
     return fixed_query
 
 
+def _parse_email_results(raw: str) -> str:
+    """Parse the rawResponse from Graph API and return clean email summaries.
+
+    The toolbox returns double-encoded JSON like:
+      {"rawResponse":"{\"@odata.context\":...,\"value\":[{...}]}"}
+    The model struggles with this. Extract subject/from/date/preview into
+    a simple text format the model can easily interpret.
+    """
+    try:
+        outer = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return raw  # Not JSON, return as-is
+
+    # Handle {"rawResponse": "..."} wrapper
+    if isinstance(outer, dict) and "rawResponse" in outer:
+        try:
+            inner = json.loads(outer["rawResponse"])
+        except (json.JSONDecodeError, TypeError):
+            return raw
+    elif isinstance(outer, dict) and "value" in outer:
+        inner = outer
+    else:
+        return raw  # Unknown format
+
+    messages = inner.get("value", [])
+    if not messages:
+        return "No emails found matching the search query."
+
+    summaries = []
+    for i, msg in enumerate(messages[:10], 1):
+        subject = msg.get("subject", "(no subject)")
+        sender = msg.get("from", {}).get("emailAddress", {}).get("name", "Unknown")
+        sender_email = msg.get("from", {}).get("emailAddress", {}).get("address", "")
+        date = msg.get("receivedDateTime", "")[:10]
+        preview = msg.get("bodyPreview", "")[:200]
+        msg_id = msg.get("id", "")
+        summaries.append(
+            f"{i}. Subject: {subject}\n"
+            f"   From: {sender} <{sender_email}>\n"
+            f"   Date: {date}\n"
+            f"   Preview: {preview}\n"
+            f"   MessageID: {msg_id}"
+        )
+
+    header = f"Found {len(messages)} email(s):\n\n"
+    result = header + "\n\n".join(summaries)
+    logger.info("_parse_email_results: %d emails extracted", len(messages))
+    return result
+
+
 def _get_toolbox_url() -> str:
     """Build the toolbox MCP endpoint URL."""
     project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
@@ -216,9 +266,9 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
                         if isinstance(parsed, dict) and "reply" in parsed:
                             span.set_attribute("toolbox.response_preview", parsed["reply"][:200])
                             return parsed["reply"]
-                        texts.append(text[:4000])
+                        texts.append(text[:16000])
                     except (json.JSONDecodeError, TypeError):
-                        texts.append(text[:4000])
+                        texts.append(text[:16000])
 
             output = "\n".join(texts) if texts else "(no content returned)"
             span.set_attribute("toolbox.response_preview", output[:200])
@@ -426,6 +476,8 @@ def search_emails_query(
         "preferTextBody": True,
     })
     logger.info("search_emails_query RESULT length: %d, preview: %r", len(result), result[:200])
+    # --- Parse rawResponse to extract clean email summaries for the model ---
+    result = _parse_email_results(result)
     return result
 
 
