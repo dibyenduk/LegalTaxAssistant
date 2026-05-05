@@ -421,10 +421,12 @@ def search_emails_query(
     logger.info("search_emails_query INPUT: %r", query_parameters[:150])
     query_parameters = _fix_search_query(query_parameters)
     logger.info("search_emails_query OUTPUT: %r", query_parameters[:150])
-    return _call_toolbox_mcp("WorkIQMail.SearchMessagesQueryParameters", {
+    result = _call_toolbox_mcp("WorkIQMail.SearchMessagesQueryParameters", {
         "queryParameters": query_parameters,
         "preferTextBody": True,
     })
+    logger.info("search_emails_query RESULT length: %d, preview: %r", len(result), result[:200])
+    return result
 
 
 @tool
