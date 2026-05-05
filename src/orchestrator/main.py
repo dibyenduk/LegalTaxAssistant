@@ -60,7 +60,7 @@ logger = logging.getLogger("orchestrator")
 # Configuration — platform-injected + agent.yaml declared env vars
 # ---------------------------------------------------------------------------
 MODEL_DEPLOYMENT_NAME = os.environ.get("AZURE_AI_MODEL_DEPLOYMENT_NAME",
-                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-4o-mini"))
+                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-5.4"))
 CLASSIFIER_AGENT = os.environ.get("CLASSIFIER_AGENT_NAME", "ClassifierAgent-2")
 REQUESTOR_AGENT = os.environ.get("REQUESTOR_AGENT_NAME", "RequestorAgent-2")
 LEGAL_AGENT = os.environ.get("LEGAL_AGENT_NAME", "LegalAgent-2")
@@ -568,9 +568,9 @@ When the user explicitly asks to search their **email/inbox** for an answer:
 0. **Get assigned questions first** — if you do NOT already know the question ID,
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". This gives you the
-   question ID(s) and text. If there's one question, proceed. If multiple,
-   list them and ask the user which one they want to answer from email.
-   REMEMBER the question ID(s) for step 4.
+   question ID(s), request ID(s), and text. If there's one question, proceed.
+   If multiple, list them and ask the user which one they want to answer from email.
+   REMEMBER both the question_id AND request_id for step 4.
 1. **Search emails (keyword first)** — call `search_emails_query` using OR
    between keywords so ANY matching word returns results.
    Think: "What would the email SUBJECT line say?" — pick those nouns.
@@ -591,11 +591,11 @@ When the user explicitly asks to search their **email/inbox** for an answer:
 4. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
-   - The question ID (REQUIRED — from step 0)
-   - Instruction: "Submit the following answer for question ID '[question_id]': [drafted answer text]"
+   - The question ID AND request ID (BOTH REQUIRED — from step 0)
+   - Instruction: "Submit the following answer for question_id '[question_id]' with request_id '[request_id]': [drafted answer text]"
    - The drafted answer text
    - Source attribution: "Based on email from [sender] dated [date] with subject '[subject]'"
-   You MUST include the question ID. If you don't have it, go back to step 0.
+   You MUST include both question_id and request_id. If you don't have them, go back to step 0.
 
 ## Composite Workflow B: Answer Questions from Files/M365 Content
 
@@ -606,9 +606,9 @@ attachments**, or says something broad like "find the answer in my stuff" /
 0. **Get assigned questions first** — if you do NOT already know the question ID,
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". This gives you the
-   question ID(s) and text. If there's one question, proceed. If multiple,
-   list them and ask the user which one they want to answer from files.
-   REMEMBER the question ID(s) for step 3.
+   question ID(s), request ID(s), and text. If there's one question, proceed.
+   If multiple, list them and ask the user which one they want to answer from files.
+   REMEMBER both the question_id AND request_id for step 3.
 1. **Search M365 content** — call `search_m365_content` with key terms extracted
    from the question text.
 2. **Draft an answer** — synthesize the returned content into a clear, professional
@@ -618,11 +618,11 @@ attachments**, or says something broad like "find the answer in my stuff" /
 3. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
-   - The question ID (REQUIRED — from step 0)
-   - Instruction: "Submit the following answer for question ID '[question_id]': [drafted answer text]"
+   - The question ID AND request ID (BOTH REQUIRED — from step 0)
+   - Instruction: "Submit the following answer for question_id '[question_id]' with request_id '[request_id]': [drafted answer text]"
    - The drafted answer text
    - Source attribution: "Based on [document title/filename] from [source]"
-   You MUST include the question ID. If you don't have it, go back to step 0.
+   You MUST include both question_id and request_id. If you don't have them, go back to step 0.
 
 ### Choosing between Workflow A and B:
 - User says "email", "inbox", "message from" → Workflow A
@@ -641,11 +641,13 @@ When the expert writes their own answer (not from email or files):
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". If there's one question,
    proceed. If multiple, list them and ask which one they're answering.
+   REMEMBER both the question_id AND request_id.
 2. **Confirm** — show the user's answer back and ask: "Submit this answer for
    question '[question text]'?" (ask ONCE only).
 3. **Submit** — on confirmation, call the specialist agent with:
    "For expert [email]: Use submit_answer to submit the following answer
-   for question_id '[question_id]'. Answer text: [user's answer text]"
+   for question_id '[question_id]' with request_id '[request_id]'.
+   Answer text: [user's answer text]"
 
 ## Submission Rules
 - After drafting an answer, ask the user ONCE if they want to submit it.
@@ -653,14 +655,20 @@ When the expert writes their own answer (not from email or files):
   IMMEDIATELY call `route_to_legal_agent` or `route_to_tax_agent` with this
   EXACT message format (fill in the values from the conversation):
 
-  "For expert [expert_email]: Use submit_answer to submit the following answer
-  for question_id '[question_id]'. Answer text: [the full drafted answer text]"
+  "EXECUTE IMMEDIATELY without asking for confirmation. For expert [expert_email]:
+  Call submit_answer now with question_id='[question_id]',
+  request_id='[request_id]', and answer_text='[the full drafted answer text]'.
+  The user has already confirmed. Do NOT ask for confirmation.
+  Do NOT ask clarifying questions. Just call submit_answer and return the result."
 
   Do NOT call get_assigned_questions again. Do NOT re-list questions.
   Do NOT ask for confirmation again. Just submit with the above message.
 - NEVER ask for confirmation more than once. One "yes" = submit now.
 - If you already have the user's confirmation, do not re-display the answer
   or ask "are you sure?" — just submit it.
+- If the specialist agent returns a confirmation prompt instead of a result,
+  call it AGAIN with the same message prefixed with "CONFIRMED. EXECUTE NOW: "
+  Do NOT relay confirmation requests back to the user.
 - You ALREADY KNOW the question_id and drafted answer from earlier in this
   conversation. Look back in the conversation history to find them.
   Do NOT tell the user "I can't find" the question — it's in YOUR OWN history.
@@ -669,10 +677,11 @@ When the expert writes their own answer (not from email or files):
 - If the user says "submit to all questions", "yes for all", "apply to all",
   or similar, submit the SAME drafted answer to ALL their assigned questions.
 - Call the specialist agent ONCE PER question_id with the same answer text.
-  Example: if user has question IDs q1, q2, q3 — make 3 separate calls:
-  "For expert [email]: Use submit_answer for question_id 'q1'. Answer text: ..."
-  "For expert [email]: Use submit_answer for question_id 'q2'. Answer text: ..."
-  "For expert [email]: Use submit_answer for question_id 'q3'. Answer text: ..."
+  Each call MUST include both question_id AND request_id.
+  Example: if user has questions (q1, r1), (q2, r2), (q3, r3) — make 3 calls:
+  "For expert [email]: submit_answer for question_id 'q1' request_id 'r1'. Answer text: ..."
+  "For expert [email]: submit_answer for question_id 'q2' request_id 'r2'. Answer text: ..."
+  "For expert [email]: submit_answer for question_id 'q3' request_id 'r3'. Answer text: ..."
 - Report back which submissions succeeded and which failed.
 
 ## Rules
