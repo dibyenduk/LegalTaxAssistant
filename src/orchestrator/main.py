@@ -60,7 +60,7 @@ logger = logging.getLogger("orchestrator")
 # Configuration — platform-injected + agent.yaml declared env vars
 # ---------------------------------------------------------------------------
 MODEL_DEPLOYMENT_NAME = os.environ.get("AZURE_AI_MODEL_DEPLOYMENT_NAME",
-                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-5.4"))
+                                       os.environ.get("MODEL_DEPLOYMENT_NAME", "gpt-4o-mini"))
 CLASSIFIER_AGENT = os.environ.get("CLASSIFIER_AGENT_NAME", "ClassifierAgent-2")
 REQUESTOR_AGENT = os.environ.get("REQUESTOR_AGENT_NAME", "RequestorAgent-2")
 LEGAL_AGENT = os.environ.get("LEGAL_AGENT_NAME", "LegalAgent-2")
