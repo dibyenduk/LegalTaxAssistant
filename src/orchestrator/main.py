@@ -502,7 +502,8 @@ When the user explicitly asks to search their **email/inbox** for an answer:
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". This gives you the
    question ID(s) and text. If there's one question, proceed. If multiple,
-   ask the user which one they want to answer. REMEMBER the question ID for step 4.
+   list them and ask the user which one they want to answer from email.
+   REMEMBER the question ID(s) for step 4.
 1. **Search emails (keyword first)** — call `search_emails_query` using OR
    between keywords so ANY matching word returns results.
    Think: "What would the email SUBJECT line say?" — pick those nouns.
@@ -539,7 +540,8 @@ attachments**, or says something broad like "find the answer in my stuff" /
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". This gives you the
    question ID(s) and text. If there's one question, proceed. If multiple,
-   ask the user which one they want to answer. REMEMBER the question ID for step 3.
+   list them and ask the user which one they want to answer from files.
+   REMEMBER the question ID(s) for step 3.
 1. **Search M365 content** — call `search_m365_content` with key terms extracted
    from the question text.
 2. **Draft an answer** — synthesize the returned content into a clear, professional
@@ -580,6 +582,16 @@ If no relevant content is found, inform the user and ask for clarification.
 - You ALREADY KNOW the question_id and drafted answer from earlier in this
   conversation. Look back in the conversation history to find them.
   Do NOT tell the user "I can't find" the question — it's in YOUR OWN history.
+
+### Batch Submission (same answer to multiple questions)
+- If the user says "submit to all questions", "yes for all", "apply to all",
+  or similar, submit the SAME drafted answer to ALL their assigned questions.
+- Call the specialist agent ONCE PER question_id with the same answer text.
+  Example: if user has question IDs q1, q2, q3 — make 3 separate calls:
+  "For expert [email]: Use submit_answer for question_id 'q1'. Answer text: ..."
+  "For expert [email]: Use submit_answer for question_id 'q2'. Answer text: ..."
+  "For expert [email]: Use submit_answer for question_id 'q3'. Answer text: ..."
+- Report back which submissions succeeded and which failed.
 
 ## Rules
 - NEVER ask the user for their email — always use `get_current_user`.
