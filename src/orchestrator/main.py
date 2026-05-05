@@ -114,8 +114,21 @@ def _fix_search_query(query_parameters: str) -> str:
     logger.info("_fix_search_query matched: '%s'", search_value)
 
     # If it already has OR or field targeting (subject:, from:), leave it alone
-    if " OR " in search_value or ":" in search_value:
-        logger.info("_fix_search_query: already has OR or field targeting, skipping")
+    if ":" in search_value:
+        logger.info("_fix_search_query: has field targeting, skipping")
+        return query_parameters
+
+    if " OR " in search_value:
+        # Already OR'd but may include stop words — strip them
+        parts = [p.strip() for p in search_value.split(" OR ")]
+        filtered = [p for p in parts if p.lower().rstrip("?.,!") not in _SEARCH_STOP_WORDS and len(p) > 2]
+        if filtered and len(filtered) < len(parts):
+            fixed_search = " OR ".join(filtered)
+            fixed_query = query_parameters[:match.start(1)] + fixed_search + query_parameters[match.end(1):]
+            fixed_query = re.sub(r'\$search="?([^"]*)"?', r'$search="\1"', fixed_query)
+            logger.info("Stripped stop-words from OR query: '%s' -> '%s'", search_value, fixed_search)
+            return fixed_query
+        logger.info("_fix_search_query: already has OR, no stop words to remove")
         return query_parameters
 
     # If it's already short (1-2 words), leave it alone
