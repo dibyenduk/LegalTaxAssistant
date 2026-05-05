@@ -506,7 +506,9 @@ def search_m365_content(
     Slower than direct email search (up to 30s) but covers all sources.
     """
     logger.info("search_m365_content: %s", query[:100])
-    return _call_toolbox_mcp("WorkIQCopilot.Search", {"message": query})
+    result = _call_toolbox_mcp("WorkIQCopilot.Search", {"message": query})
+    logger.info("search_m365_content RESULT length: %d, preview: %r", len(result), result[:500])
+    return result
 
 
 # ---------------------------------------------------------------------------
@@ -560,6 +562,8 @@ When the user asks about emails:
 ### M365 content requests → `search_m365_content`
 When the user asks to search files, documents, OneDrive, SharePoint, or attachments:
 - Use `search_m365_content` for broad semantic search across all M365 content
+- If the result is empty or says "no content returned", tell the user "I searched your M365 files but found nothing matching that query." Do NOT say the tool is unavailable — it worked, there were just no matches.
+- NEVER say a tool "isn't available" unless you received an explicit HTTP error. An empty result means zero matches, not a broken tool.
 
 ## Composite Workflow A: Answer Questions from Email
 
