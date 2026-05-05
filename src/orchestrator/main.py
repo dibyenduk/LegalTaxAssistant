@@ -498,6 +498,11 @@ When the user asks to search files, documents, OneDrive, SharePoint, or attachme
 
 When the user explicitly asks to search their **email/inbox** for an answer:
 
+0. **Get assigned questions first** — if you do NOT already know the question ID,
+   call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
+   and instruction "List assigned questions for [email]". This gives you the
+   question ID(s) and text. If there's one question, proceed. If multiple,
+   ask the user which one they want to answer. REMEMBER the question ID for step 4.
 1. **Search emails (keyword first)** — call `search_emails_query` using OR
    between keywords so ANY matching word returns results.
    Think: "What would the email SUBJECT line say?" — pick those nouns.
@@ -518,10 +523,11 @@ When the user explicitly asks to search their **email/inbox** for an answer:
 4. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
-   - The question ID (if known)
-   - Instruction: "Submit the following drafted answer for the question '[question text]'"
+   - The question ID (REQUIRED — from step 0)
+   - Instruction: "Submit the following answer for question ID '[question_id]': [drafted answer text]"
    - The drafted answer text
    - Source attribution: "Based on email from [sender] dated [date] with subject '[subject]'"
+   You MUST include the question ID. If you don't have it, go back to step 0.
 
 ## Composite Workflow B: Answer Questions from Files/M365 Content
 
@@ -529,6 +535,11 @@ When the user asks to search their **files, documents, OneDrive, SharePoint,
 attachments**, or says something broad like "find the answer in my stuff" /
 "check my documents":
 
+0. **Get assigned questions first** — if you do NOT already know the question ID,
+   call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
+   and instruction "List assigned questions for [email]". This gives you the
+   question ID(s) and text. If there's one question, proceed. If multiple,
+   ask the user which one they want to answer. REMEMBER the question ID for step 3.
 1. **Search M365 content** — call `search_m365_content` with key terms extracted
    from the question text.
 2. **Draft an answer** — synthesize the returned content into a clear, professional
@@ -538,10 +549,11 @@ attachments**, or says something broad like "find the answer in my stuff" /
 3. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
-   - The question ID (if known)
-   - Instruction: "Submit the following drafted answer for the question '[question text]'"
+   - The question ID (REQUIRED — from step 0)
+   - Instruction: "Submit the following answer for question ID '[question_id]': [drafted answer text]"
    - The drafted answer text
    - Source attribution: "Based on [document title/filename] from [source]"
+   You MUST include the question ID. If you don't have it, go back to step 0.
 
 ### Choosing between Workflow A and B:
 - User says "email", "inbox", "message from" → Workflow A
