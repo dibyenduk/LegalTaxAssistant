@@ -287,8 +287,8 @@ class LegalTaxTools:
         )
         result = self.db.create_item("Answers", answer.model_dump())
 
-        # Update question status to Answered
-        question["status"] = QuestionStatus.ANSWERED
+        # Update question status directly to Submitted (skip Answered intermediate state)
+        question["status"] = QuestionStatus.SUBMITTED
         question["updatedAt"] = utc_now()
         self.db.replace_item(
             "Questions", question_id, question, etag=question.get("_etag")
@@ -302,6 +302,7 @@ class LegalTaxTools:
             actor_email or answered_by,
             {"source": source},
         )
+
         return {
             "id": result["id"],
             "questionId": result["questionId"],
