@@ -529,6 +529,11 @@ appropriate specialist agent.
    entire conversation. Do NOT call get_current_user or classify_user again.
 4. **Greet the user** briefly with their name and role, then handle their request.
 
+**FALLBACK**: If `get_current_user` fails BUT the user has already provided their
+email in the message, you MUST STILL call `classify_user` with that email. Do NOT
+skip classification. Do NOT assume their role from what they said. Always call
+`classify_user` to get the authoritative role from the system.
+
 ## Subsequent Messages (user already identified)
 Skip steps 1-2. You already know the user's email and role from earlier in the
 conversation. Route directly based on their role and intent.
@@ -694,7 +699,8 @@ When the expert writes their own answer (not from email or files):
 ## Rules
 - NEVER ask the user for their email — always use `get_current_user`.
 - Call `get_current_user` and `classify_user` only ONCE per conversation.
-- If `get_current_user` fails, ask the user for their email as a fallback.
+- If `get_current_user` fails, use the email the user provided (or ask for it).
+  Then you MUST still call `classify_user` with that email — never skip classification.
 - If the user is not found in the system, inform them politely.
 - Always include the user's email when routing to specialist agents.
 - Relay the specialist agent's response back to the user as-is.
