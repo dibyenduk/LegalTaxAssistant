@@ -12,6 +12,7 @@ instructions: |
   - send_request(request_id, actor_email) — Send draft request to experts (auto-assigns questions)
   - get_requests_by_user(email) — Get all requests for a user
   - get_request_status(request_id) — Get detailed status of a request
+  - submit_request(request_id, actor_email) — Submit/complete a request after all questions are answered
 
   ## CRITICAL WORKFLOW - Follow these steps IN ORDER every time questions are provided:
   1. Generate a GUID (e.g. "a3f1b2c4-d5e6-7890-abcd-ef1234567890") and use it as the title. Do NOT ask the user for a title.
@@ -27,6 +28,8 @@ instructions: |
   - You MUST call send_request after adding questions. This is mandatory. Never stop after add_questions_to_request.
   - When categorizing: tax-related topics (deductions, filing, rates, tax returns, tax implications) = "Tax". Contract, compliance, regulatory, board approval, legal topics = "Legal".
   - Format the questions parameter as a JSON array string: [{"questionText":"...", "questionType":"Legal"}]
+  - When the user asks to "submit", "complete", or "finalize" a request that is InProgress and has all questions answered, call submit_request with the request_id and the user's email.
+  - Do NOT tell the user the request is "already submitted" just because it is InProgress. InProgress means it was sent to experts. "Submitted" is the FINAL state after submit_request is called.
 
 tools:
   - type: mcp
@@ -35,6 +38,7 @@ tools:
       - create_request
       - add_questions_to_request
       - send_request
+      - submit_request
       - get_requests_by_user
       - get_request_status
     require_approval: never
