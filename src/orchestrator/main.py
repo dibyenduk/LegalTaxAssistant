@@ -494,20 +494,63 @@ def get_email_message(
 
 
 @tool
-def search_m365_content(
-    query: Annotated[str, "Natural language query to search across all M365 content (emails, attachments, OneDrive, SharePoint)"],
+def search_onedrive(
+    search_query: Annotated[str, "Search query — can be partial or full file/folder name, or keywords to find relevant files in the user's OneDrive"],
 ) -> str:
-    """Search across all Microsoft 365 content using WorkIQ Copilot.
+    """Search for files and folders in the user's OneDrive.
 
-    Searches emails, email attachments, OneDrive files, and SharePoint
-    documents in a single semantic query. Returns relevance-ranked results.
-    Use this when the user wants to find information across files and documents,
-    or doesn't know which source contains what they need.
-    Slower than direct email search (up to 30s) but covers all sources.
+    Finds files or folders by name or keyword. Returns matching items with
+    their IDs, names, and metadata. Use read_onedrive_file to read the
+    content of a found file.
+    Use this when the user asks to search files, documents, OneDrive,
+    or says "check my documents" / "find in my files".
     """
-    logger.info("search_m365_content: %s", query[:100])
-    result = _call_toolbox_mcp("WorkIQCopilot.Search", {"message": query})
-    logger.info("search_m365_content RESULT length: %d, preview: %r", len(result), result[:500])
+    logger.info("search_onedrive: %s", search_query[:100])
+    result = _call_toolbox_mcp("WorkIQOneDrive.findFileOrFolderInMyDrive", {
+        "searchQuery": search_query,
+    })
+    logger.info("search_onedrive RESULT length: %d, preview: %r", len(result), result[:500])
+    return result
+
+
+@tool
+def read_onedrive_file(
+    file_id: Annotated[str, "The DriveItem ID of the file to read (obtained from search_onedrive results)"],
+) -> str:
+    """Read the content of a PLAIN TEXT file from the user's OneDrive.
+
+    Only works for plain text files (.txt, .csv, .json, .md, .yaml, etc.).
+    Does NOT work for Office documents (.docx, .pptx, .xlsx, .pdf) — those
+    return raw binary data. For Office documents, use search_m365_copilot
+    instead to get a readable summary of the content.
+    Requires the file's DriveItem ID (from search_onedrive results).
+    """
+    logger.info("read_onedrive_file: id=%s", file_id)
+    result = _call_toolbox_mcp("WorkIQOneDrive.readSmallTextFileFromMyOnedrive", {
+        "fileId": file_id,
+    })
+    logger.info("read_onedrive_file RESULT length: %d", len(result))
+    return result
+
+
+@tool
+def search_m365_copilot(
+    message: Annotated[str, "Natural language query to search and summarize M365 content (documents, emails, chats, files)"],
+) -> str:
+    """Search and summarize Microsoft 365 content using M365 Copilot.
+
+    Use this to find information INSIDE documents (Word, PowerPoint, Excel,
+    PDF) and across all M365 content. Returns a Copilot-generated summary
+    that understands document content semantically.
+    PREFERRED over read_onedrive_file for Office documents (.docx, .pptx,
+    .xlsx, .pdf) since those cannot be read as plain text.
+    Also searches emails, chats, and SharePoint content.
+    """
+    logger.info("search_m365_copilot: %s", message[:100])
+    result = _call_toolbox_mcp("WorkIQCopilot.copilot_chat", {
+        "message": message,
+    })
+    logger.info("search_m365_copilot RESULT length: %d, preview: %r", len(result), result[:500])
     return result
 
 
@@ -567,11 +610,16 @@ When the user asks about emails:
 - Use `search_emails` for natural language queries needing relevance ranking
 - Use `get_email_message` to read a full message by ID
 
-### M365 content requests → `search_m365_content`
-When the user asks to search files, documents, OneDrive, SharePoint, or attachments:
-- Use `search_m365_content` for broad semantic search across all M365 content
-- If the result is empty or says "no content returned", tell the user "I searched your M365 files but found nothing matching that query." Do NOT say the tool is unavailable — it worked, there were just no matches.
-- NEVER say a tool "isn't available" unless you received an explicit HTTP error. An empty result means zero matches, not a broken tool.
+### OneDrive & M365 content requests → `search_onedrive` / `read_onedrive_file` / `search_m365_copilot`
+When the user asks to search files, documents, OneDrive, or says "check my files":
+- **To find files by name** → use `search_onedrive` to locate files/folders
+- **To read plain text files** (.txt, .csv, .json, .md) → use `read_onedrive_file` with the DriveItem ID
+- **To read/summarize Office documents** (.docx, .pptx, .xlsx, .pdf) or to search
+  for information INSIDE documents → use `search_m365_copilot` with a natural language query.
+  This is the PREFERRED tool for understanding document content.
+- **When unsure** what format the file is → use `search_m365_copilot` (it handles all formats)
+- If the search returns no results, tell the user "I searched your OneDrive but found nothing matching that query."
+- NEVER say a tool "isn't available" unless you received an explicit HTTP error.
 
 ## Composite Workflow A: Answer Questions from Email
 
@@ -609,20 +657,24 @@ When the user explicitly asks to search their **email/inbox** for an answer:
    - Source attribution: "Based on email from [sender] dated [date] with subject '[subject]'"
    You MUST include both question_id and request_id. If you don't have them, go back to step 0.
 
-## Composite Workflow B: Answer Questions from Files/M365 Content
+## Composite Workflow B: Answer Questions from Files/Documents
 
-When the user asks to search their **files, documents, OneDrive, SharePoint,
-attachments**, or says something broad like "find the answer in my stuff" /
-"check my documents":
+When the user asks to search their **files, documents, OneDrive**, or says
+something broad like "find the answer in my stuff" / "check my documents":
 
 0. **Get assigned questions first** — if you do NOT already know the question ID,
    call `route_to_legal_agent` or `route_to_tax_agent` with the expert's email
    and instruction "List assigned questions for [email]". This gives you the
    question ID(s), request ID(s), and text. If there's one question, proceed.
    If multiple, list them and ask the user which one they want to answer from files.
-   REMEMBER both the question_id AND request_id for step 3.
-1. **Search M365 content** — call `search_m365_content` with key terms extracted
-   from the question text.
+   REMEMBER both the question_id AND request_id for step 4.
+1. **Search for content** — call `search_m365_copilot` with a natural language
+   query based on the question text. This searches across all M365 documents
+   (Word, PowerPoint, Excel, PDF, etc.) and returns a readable summary.
+   This is PREFERRED over search_onedrive + read_onedrive_file because Office
+   documents (.docx, .pptx, .xlsx) cannot be read as plain text.
+   Only use `search_onedrive` + `read_onedrive_file` if the user specifically
+   wants to find files by name or read plain text files (.txt, .csv, .json).
 2. **Draft an answer** — synthesize the returned content into a clear, professional
    answer that directly addresses the assigned question. Do NOT just paste the
    raw content. Extract the relevant information, summarize it, and phrase it as
@@ -633,12 +685,12 @@ attachments**, or says something broad like "find the answer in my stuff" /
    - The question ID AND request ID (BOTH REQUIRED — from step 0)
    - Instruction: "Submit the following answer for question_id '[question_id]' with request_id '[request_id]': [drafted answer text]"
    - The drafted answer text
-   - Source attribution: "Based on [document title/filename] from [source]"
+   - Source attribution: "Based on [document/filename] from OneDrive/M365"
    You MUST include both question_id and request_id. If you don't have them, go back to step 0.
 
 ### Choosing between Workflow A and B:
 - User says "email", "inbox", "message from" → Workflow A
-- User says "files", "documents", "OneDrive", "SharePoint", "attachments" → Workflow B
+- User says "files", "documents", "OneDrive", "attachments" → Workflow B
 - User says "find the answer" (ambiguous) → Workflow B (broadest coverage)
 - User provides their own answer text directly → Workflow C
 
@@ -730,7 +782,9 @@ def main() -> None:
             search_emails,
             search_emails_query,
             get_email_message,
-            search_m365_content,
+            search_onedrive,
+            read_onedrive_file,
+            search_m365_copilot,
         ],
         default_options={"store": True},
     )
