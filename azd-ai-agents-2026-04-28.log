@@ -1,0 +1,342 @@
+[2026-04-28T23:57:11-05:00] Retry: =====> Try=1 for GET https://graph.microsoft.com/v1.0/me
+[2026-04-28T23:57:12-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://graph.microsoft.com/.default"
+[2026-04-28T23:57:12-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://graph.microsoft.com/v1.0/me
+   Authorization: REDACTED
+   User-Agent: azsdk-go-graph/1.0.0 (go1.26.1-X:loopvar; Windows_NT)
+
+[2026-04-28T23:57:12-05:00] Response: ==> REQUEST/RESPONSE (Try=1/371.6825ms, OpTime=371.6825ms) -- RESPONSE RECEIVED
+   GET https://graph.microsoft.com/v1.0/me
+   Authorization: REDACTED
+   User-Agent: azsdk-go-graph/1.0.0 (go1.26.1-X:loopvar; Windows_NT)
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Client-Request-Id: REDACTED
+   Content-Type: application/json;odata.metadata=minimal;odata.streaming=true;IEEE754Compatible=false;charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:12 GMT
+   Odata-Version: REDACTED
+   Request-Id: b7ed75d0-e6d6-4229-9160-d6d035032820
+   Strict-Transport-Security: REDACTED
+   Vary: REDACTED
+   X-Cache: REDACTED
+   X-Ms-Ags-Diagnostic: REDACTED
+   X-Ms-Resource-Unit: REDACTED
+
+[2026-04-28T23:57:12-05:00] Retry: response 200
+[2026-04-28T23:57:12-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:12-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+[2026-04-28T23:57:13-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:13-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+
+[2026-04-28T23:57:14-05:00] Response: ==> REQUEST/RESPONSE (Try=1/847.5152ms, OpTime=847.5152ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 5717
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:13 GMT
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Ms-Correlation-Request-Id: REDACTED
+   X-Ms-Operation-Identifier: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: 2ec9dd04-ca35-4884-a97a-ec93a5c74455
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:14-05:00] Retry: response 200
+[2026-04-28T23:57:14-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:14-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+[2026-04-28T23:57:16-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:16-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+
+[2026-04-28T23:57:16-05:00] Response: ==> REQUEST/RESPONSE (Try=1/270.1715ms, OpTime=270.1715ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 5717
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:14 GMT
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Ms-Correlation-Request-Id: REDACTED
+   X-Ms-Operation-Identifier: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: c24568f9-0662-426a-aff9-ad3599bbbd14
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:16-05:00] Retry: response 200
+[2026-04-28T23:57:16-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:16-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/providers/Microsoft.ContainerRegistry/registries?api-version=2025-03-01-preview
+[2026-04-28T23:57:17-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:17-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/providers/Microsoft.ContainerRegistry/registries?api-version=2025-03-01-preview
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcontainerregistry/v1.3.0-beta.3 (go1.26.1-X:loopvar; Windows_NT)
+
+[2026-04-28T23:57:18-05:00] Response: ==> REQUEST/RESPONSE (Try=1/509.7117ms, OpTime=509.7117ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/providers/Microsoft.ContainerRegistry/registries?api-version=2025-03-01-preview
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcontainerregistry/v1.3.0-beta.3 (go1.26.1-X:loopvar; Windows_NT)
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 7896
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:16 GMT
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Ms-Correlation-Request-Id: REDACTED
+   X-Ms-Original-Request-Ids: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: 14bc5983-9a8f-48dd-b493-7b7e53885eef
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:18-05:00] Retry: response 200
+[2026-04-28T23:57:18-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:18-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-legaltaxassist0428/providers/Microsoft.ContainerRegistry/registries/acrjvtju6jxst6a6/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+[2026-04-28T23:57:19-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:19-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-legaltaxassist0428/providers/Microsoft.ContainerRegistry/registries/acrjvtju6jxst6a6/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+
+[2026-04-28T23:57:20-05:00] Response: ==> REQUEST/RESPONSE (Try=1/1.0208077s, OpTime=1.0208077s) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-legaltaxassist0428/providers/Microsoft.ContainerRegistry/registries/acrjvtju6jxst6a6/providers/Microsoft.Authorization/roleAssignments?%24filter=REDACTED&api-version=2022-04-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armauthorization/v3.0.0-beta.2 (go1.26.1-X:loopvar; Windows_NT)
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 1771
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:18 GMT
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Ms-Correlation-Request-Id: REDACTED
+   X-Ms-Operation-Identifier: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: b257fb6b-e948-4ed7-a191-f6b254c53ad5
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:20-05:00] Retry: response 200
+[2026-04-28T23:57:20-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:21-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+[2026-04-28T23:57:23-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:23-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+
+[2026-04-28T23:57:23-05:00] Response: ==> REQUEST/RESPONSE (Try=1/366.8792ms, OpTime=366.8792ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 1436
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:21 GMT
+   Etag: "750050a8-0000-0100-0000-69e414240000"
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Envoy-Upstream-Service-Time: REDACTED
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: 7bc8db90-8100-4414-9026-17f66d4599a9
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:23-05:00] Retry: response 200
+[2026-04-28T23:57:23-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:57:24-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+[2026-04-28T23:57:25-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:57:25-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+
+[2026-04-28T23:57:26-05:00] Response: ==> REQUEST/RESPONSE (Try=1/214.5296ms, OpTime=214.5296ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 1436
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:57:24 GMT
+   Etag: "750050a8-0000-0100-0000-69e414240000"
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Envoy-Upstream-Service-Time: REDACTED
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: 4c84fcd5-91ab-4fd8-ba65-47c4183bfe92
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:57:26-05:00] Retry: response 200
+[2026-04-28T23:57:26-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:59:14-05:00] Retry: =====> Try=1 for GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+[2026-04-28T23:59:15-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://management.core.windows.net//.default"
+[2026-04-28T23:59:15-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+
+[2026-04-28T23:59:15-05:00] Response: ==> REQUEST/RESPONSE (Try=1/431.154ms, OpTime=431.6589ms) -- RESPONSE RECEIVED
+   GET https://management.azure.com/subscriptions/e45a11d6-bb7b-4f12-bb15-5c809203c616/resourceGroups/rg-prj-foundry-demo-us-east-dev-001/providers/Microsoft.CognitiveServices/accounts/foundry-demo-us-east-resource/projects/prj-foundry-demo-us-east-dev-001?api-version=2025-06-01
+   Accept: application/json
+   Authorization: REDACTED
+   User-Agent: azsdk-go-armcognitiveservices/v2.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 200 OK
+   Cache-Control: no-cache
+   Content-Length: 1436
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:59:14 GMT
+   Etag: "750050a8-0000-0100-0000-69e414240000"
+   Expires: -1
+   Pragma: no-cache
+   Strict-Transport-Security: REDACTED
+   X-Cache: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Envoy-Upstream-Service-Time: REDACTED
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   X-Ms-Ratelimit-Remaining-Subscription-Global-Reads: REDACTED
+   X-Ms-Ratelimit-Remaining-Subscription-Reads: REDACTED
+   X-Ms-Request-Id: 2cafe295-1934-4a1c-abfb-5aac1aef7a48
+   X-Ms-Routing-Request-Id: REDACTED
+   X-Msedge-Ref: REDACTED
+
+[2026-04-28T23:59:15-05:00] Retry: response 200
+[2026-04-28T23:59:15-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:59:17-05:00] Authentication: AzureDeveloperCLICredential.GetToken() acquired a token for scope "https://ai.azure.com/.default"
+[2026-04-28T23:59:17-05:00] Retry: =====> Try=1 for POST https://foundry-demo-us-east-resource.services.ai.azure.com/api/projects/prj-foundry-demo-us-east-dev-001/agents/LegalTaxOrchestrator/versions?api-version=2025-11-15-preview
+[2026-04-28T23:59:17-05:00] Request: ==> OUTGOING REQUEST (Try=1)
+   POST https://foundry-demo-us-east-resource.services.ai.azure.com/api/projects/prj-foundry-demo-us-east-dev-001/agents/LegalTaxOrchestrator/versions?api-version=2025-11-15-preview
+   Authorization: REDACTED
+   Content-Length: 293
+   Content-Type: application/json
+   User-Agent: azsdk-go-azure-ai-agents/v1.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   --------------------------------------------------------------------------------
+{"metadata":{"enableVnextExperience":"true"},"definition":{"kind":"hosted","container_protocol_versions":[{"protocol":"responses","version":"1.0.0"}],"cpu":"0.25","memory":"0.5Gi","image":"acrjvtju6jxst6a6.azurecr.io/legal-tax-assistant/orchestrator-legaltaxassist0428:azd-deploy-1777438647"}}
+   --------------------------------------------------------------------------------
+
+[2026-04-28T23:59:17-05:00] Response: ==> REQUEST/RESPONSE (Try=1/640.8643ms, OpTime=640.8643ms) -- RESPONSE RECEIVED
+   POST https://foundry-demo-us-east-resource.services.ai.azure.com/api/projects/prj-foundry-demo-us-east-dev-001/agents/LegalTaxOrchestrator/versions?api-version=2025-11-15-preview
+   Authorization: REDACTED
+   Content-Length: 293
+   Content-Type: application/json
+   User-Agent: azsdk-go-azure-ai-agents/v1.0.0 (go1.26.1-X:loopvar; Windows_NT),azd-ext-azure-ai-agents/0.1.28-preview
+   X-Ms-Correlation-Request-Id: d4b2f6ca5528a3007082d4ac781c29b1
+   --------------------------------------------------------------------------------
+   RESPONSE Status: 400 Bad Request
+   Api-Supported-Versions: REDACTED
+   Apim-Request-Id: REDACTED
+   Azureml-Served-By-Cluster: REDACTED
+   Content-Type: application/json; charset=utf-8
+   Date: Wed, 29 Apr 2026 04:59:16 GMT
+   Request-Context: REDACTED
+   Strict-Transport-Security: REDACTED
+   Vary: REDACTED
+   X-Content-Type-Options: REDACTED
+   X-Ms-Region: REDACTED
+   X-Ms-Response-Type: REDACTED
+   X-Request-Id: 32ad669aa40ce3bc20a6eb626a65407c
+   --------------------------------------------------------------------------------
+{
+  "error": {
+    "code": "bad_request",
+    "message": "The requested experience is not available for this subscription. [Request ID: 32ad669aa40ce3bc20a6eb626a65407c]",
+    "type": "invalid_request_error",
+    "details": [],
+    "additionalInfo": {
+      "request_id": "32ad669aa40ce3bc20a6eb626a65407c"
+    }
+  }
+}
+   --------------------------------------------------------------------------------
+
+[2026-04-28T23:59:17-05:00] Retry: response 400
+[2026-04-28T23:59:17-05:00] Retry: exit due to non-retriable status code
+[2026-04-28T23:59:17-05:00] ResponseError: POST https://foundry-demo-us-east-resource.services.ai.azure.com/api/projects/prj-foundry-demo-us-east-dev-001/agents/LegalTaxOrchestrator/versions
+--------------------------------------------------------------------------------
+RESPONSE 400: 400 Bad Request
+ERROR CODE: bad_request
+--------------------------------------------------------------------------------
+{
+  "error": {
+    "code": "bad_request",
+    "message": "The requested experience is not available for this subscription. [Request ID: 32ad669aa40ce3bc20a6eb626a65407c]",
+    "type": "invalid_request_error",
+    "details": [],
+    "additionalInfo": {
+      "request_id": "32ad669aa40ce3bc20a6eb626a65407c"
+    }
+  }
+}
+--------------------------------------------------------------------------------
+

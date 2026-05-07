@@ -1,0 +1,32 @@
+name: LegalTaxOrchestrator-3
+description: >
+  Orchestrator agent for the Legal & Tax Assistant. Routes user messages
+  to the appropriate specialist agent (Requestor, Legal Expert, Tax Expert)
+  based on the user's role determined by the ClassifierAgent.
+metadata:
+  tags:
+    - Agent Framework
+    - AI Agent Hosting
+    - Responses Protocol
+    - Legal Tax Assistant
+template:
+  name: LegalTaxOrchestrator-3
+  kind: hosted
+  protocols:
+    - protocol: responses
+      version: 1.0.0
+  environment_variables:
+    - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+      value: "{{AZURE_AI_MODEL_DEPLOYMENT_NAME}}"
+    - name: CLASSIFIER_AGENT_NAME
+      value: ClassifierAgent-2
+    - name: REQUESTOR_AGENT_NAME
+      value: RequestorAgent-2
+    - name: LEGAL_AGENT_NAME
+      value: LegalAgent-2
+    - name: TAX_AGENT_NAME
+      value: TaxAgent-2
+resources:
+  - kind: model
+    id: gpt-5.4-mini
+    name: AZURE_AI_MODEL_DEPLOYMENT_NAME

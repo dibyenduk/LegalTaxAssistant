@@ -1,0 +1,51 @@
+{
+  "manifestVersion": "1.17",
+  "description": {
+    "short": "Ask legal and tax questions",
+    "full": "Legal & Tax Assistant - submit questions to legal and tax experts"
+  },
+  "developer": {
+    "name": "Dibyendu Kankalia",
+    "privacyUrl": "https://privacy.microsoft.com",
+    "termsOfUseUrl": "https://www.microsoft.com/servicesagreement",
+    "websiteUrl": "https://foundry-demo-ncus-resource.services.ai.azure.com"
+  },
+  "validDomains": [
+    "foundry-demo-ncus-resource.services.ai.azure.com"
+  ],
+  "icons": {
+    "outline": "outline.png",
+    "color": "color.png"
+  },
+  "name": {
+    "short": "Legal Tax Assistant",
+    "full": "Legal & Tax Assistant Orchestrator"
+  },
+  "id": "a430b731-9c69-4aa6-b62a-9f3a7cbca8bf",
+  "bots": [
+    {
+      "commandLists": [
+        {
+          "scopes": [
+            "personal"
+          ],
+          "commands": [
+            {
+              "description": "Get help with the Legal Tax Assistant",
+              "title": "help"
+            }
+          ]
+        }
+      ],
+      "botId": "a430b731-9c69-4aa6-b62a-9f3a7cbca8bf",
+      "scopes": [
+        "personal",
+        "team",
+        "groupChat"
+      ]
+    }
+  ],
+  "accentColor": "#4F6BED",
+  "version": "1.0.0",
+  "$schema": "https://developer.microsoft.com/en-us/json-schemas/teams/v1.17/MicrosoftTeams.schema.json"
+}

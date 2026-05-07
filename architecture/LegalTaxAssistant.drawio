@@ -1,0 +1,191 @@
+<mxfile host="app.diagrams.net" pages="2">
+  <diagram name="Page-1" id="hjYvz5MC2xuuux7ozKnq">
+    <mxGraphModel dx="1406" dy="746" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="q0XTexM6m5GFNxIaouFc-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Agent Framework code&amp;nbsp;&lt;div&gt;(Reference to Foundry agent)&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;Agent + Local Functions Register&lt;/div&gt;" vertex="1">
+          <mxGeometry height="120" width="170" x="650" y="140" as="geometry" />
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-2" parent="1" style="whiteSpace=wrap;html=1;aspect=fixed;" value="Foundry" vertex="1">
+          <mxGeometry height="80" width="80" x="490" y="160" as="geometry" />
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-3" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Teams" vertex="1">
+          <mxGeometry height="60" width="120" x="155" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-4" edge="1" parent="1" source="q0XTexM6m5GFNxIaouFc-3" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="q0XTexM6m5GFNxIaouFc-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="400" y="370" as="sourcePoint" />
+            <mxPoint x="450" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="API Container" vertex="1">
+          <mxGeometry height="30" width="90" x="690" y="100" as="geometry" />
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-6" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="q0XTexM6m5GFNxIaouFc-1" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="735" y="420" as="sourcePoint" />
+            <mxPoint x="450" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-7" edge="1" parent="1" source="q0XTexM6m5GFNxIaouFc-1" style="endArrow=classic;html=1;rounded=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=0;exitY=0.5;exitDx=0;exitDy=0;" target="q0XTexM6m5GFNxIaouFc-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="400" y="370" as="sourcePoint" />
+            <mxPoint x="450" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-8" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User" vertex="1">
+          <mxGeometry height="30" width="60" x="705" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-9" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" target="q0XTexM6m5GFNxIaouFc-3" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="215" y="410" as="sourcePoint" />
+            <mxPoint x="450" y="310" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="q0XTexM6m5GFNxIaouFc-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User" vertex="1">
+          <mxGeometry height="30" width="60" x="190" y="440" as="geometry" />
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+  <diagram id="nXyN4u-d_u7A7GJbUWul" name="Page-2">
+    <mxGraphModel dx="2504" dy="1978" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="850" pageHeight="1100" math="0" shadow="0">
+      <root>
+        <mxCell id="0" />
+        <mxCell id="1" parent="0" />
+        <mxCell id="Q-n8uPKE0Pt-m7UyACJH-1" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Teams" vertex="1">
+          <mxGeometry height="60" width="120" x="-190" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="Q-n8uPKE0Pt-m7UyACJH-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="ClassifierAgent-2" vertex="1">
+          <mxGeometry height="60" width="120" x="1190" y="-90" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-1" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User dkankalia@MngEnvMCAP629447.onmicrosoft.com&amp;nbsp; (Legal Expert) is logged into teams&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="310" x="-270" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-2" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Teams" vertex="1">
+          <mxGeometry height="60" width="120" x="-190" y="30" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-3" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User mkankalia@MngEnvMCAP629447.onmicrosoft.com&amp;nbsp; (Requestor) is logged into teams&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="310" x="-270" y="130" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-4" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Teams" vertex="1">
+          <mxGeometry height="60" width="120" x="-200" y="440" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-5" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="User vkankalia@MngEnvMCAP629447.onmicrosoft.com&amp;nbsp; (Tax Expert) is logged into teams&lt;div&gt;&lt;br&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="30" width="310" x="-280" y="530" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-6" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Teams Bot" vertex="1">
+          <mxGeometry height="60" width="120" x="280" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-7" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-2" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="60" />
+              <mxPoint x="200" y="270" />
+            </Array>
+            <mxPoint x="330" y="370" as="sourcePoint" />
+            <mxPoint x="290" y="270" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-8" edge="1" parent="1" source="Q-n8uPKE0Pt-m7UyACJH-1" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-6" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="330" y="370" as="sourcePoint" />
+            <mxPoint x="380" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-9" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-4" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-6" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <Array as="points">
+              <mxPoint x="200" y="470" />
+              <mxPoint x="200" y="270" />
+            </Array>
+            <mxPoint x="330" y="370" as="sourcePoint" />
+            <mxPoint x="380" y="320" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-10" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="Questions asked by Requestor -&amp;nbsp;&lt;div&gt;1. I want to submit a new request. - Request should allow to enter questions 1 per line. It should then get routed to legal expert or tax expert based on the question.&lt;/div&gt;&lt;div&gt;2. What is the status of my open requests ? - Should show the request and the questions they are assigned. There can be many requests in open status.&lt;/div&gt;&lt;div&gt;3. Assign the question to me. - Assign the question to the requestor and allow to answer it.&lt;/div&gt;&lt;div&gt;4. Get the answer for the question from my email - Get the answer from email&lt;/div&gt;&lt;div&gt;5. Answer the question - Submits the answer&lt;/div&gt;&lt;div&gt;6. Submit the request - Once all questions are answered, the request can be submitted.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="140" width="510" x="-60" y="-100" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-11" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Questions asked by Legal Expert -&amp;nbsp;&lt;div&gt;1. What are the questions assigned to me&lt;/div&gt;&lt;div&gt;2. Get the answer to the question from my email&lt;/div&gt;&lt;div&gt;3. Answer the question and mark it submitted&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="280" x="-70" y="170" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-12" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Questions asked by Tax Expert -&amp;nbsp;&lt;div&gt;1. What are the questions assigned to me&lt;/div&gt;&lt;div&gt;2. Get the answer to the question from my email&lt;/div&gt;&lt;div&gt;3. Answer the question and mark it submitted&lt;/div&gt;" vertex="1">
+          <mxGeometry height="110" width="280" x="-80" y="380" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-13" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Gets the request from teams. This will be created later when the agent is published manually through Microsoft Foundry" vertex="1">
+          <mxGeometry height="60" width="210" x="240" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-14" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Custom API Middleware" vertex="1">
+          <mxGeometry height="60" width="120" x="520" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-15" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-6" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" target="pElz31CkjSHs_Up43ZBx-14" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="330" y="270" as="sourcePoint" />
+            <mxPoint x="380" y="220" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-16" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Custom middleware as App Service API which gets all the requests from the teams bot. It extracts the user&#39;s token and exchanges it for a on behalf of token to call the foundry orchestrator agent. It will send the credential to the Foundry agent. The middleware should also get the teams conversation id and send it to the foundry agent (if possible)" vertex="1">
+          <mxGeometry height="155" width="210" x="480" y="315" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-17" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="Orchestrator" vertex="1">
+          <mxGeometry height="60" width="120" x="810" y="240" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-18" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-17" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="640" y="270" as="sourcePoint" />
+            <mxPoint x="380" y="190" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-19" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="Foundry Hosted agent whose code is written using agent framework. It decides which Foundry prompt agents (RequestorAgent-2, LegalExpertAgent-2, TaxExpertAgent-2) to forward the request using on behalf of token sent by the middleware.&lt;div&gt;The orchestrator should retrieve the email of the user and get the role of the user from a ClassifierAgent-2 agent. Based on this role of the user, the request should redirect to either Requestor, Legal or Tax agent. The role should be cached for a user and if possible reused to avoid multiple calls to the Classifier-2 agent.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="255" width="210" x="740" y="330" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-20" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=center;verticalAlign=middle;rounded=0;" value="ClassifierAgent-2 is a Foundry Declarative Agent that identifies the user and returns the role of the user. It&amp;nbsp; has 2 tools -&amp;nbsp;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Work IQ User - Built in Foundry Tool to identify the user from the credential.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;2. LegalTaxAssistantTools - MCP Server having functionality to get the role of a user from cosmos db.&lt;/div&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;In future this will also have ability to send teams messages to users who are assigned questions.&lt;/div&gt;" vertex="1">
+          <mxGeometry height="200" width="210" x="1340" y="-160" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-21" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="RequestorAgent-2" vertex="1">
+          <mxGeometry height="60" width="120" x="1190" y="115" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-22" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;RequestorAgent-2 is a Foundry Declarative Agent that allows user to -&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Create a new request with questions.&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. Assigns the questions based on the type of question - Legal or Tax and assigns them to Legal expert or Tax expert based on information in cosmos db.&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;3. See the status of the request and see who the questions are assigned.&lt;/div&gt;&lt;div&gt;4. Assign the questions to the user.&lt;/div&gt;&lt;div&gt;5. Get the answer to question from email.&lt;/div&gt;&lt;div&gt;6. Answer the question and mark it submitted.&lt;br&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;It&amp;nbsp; has 2 tools -&amp;nbsp;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Work IQ Email - Built in Foundry Tool to get emails.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. L&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;egalTaxAssistantTools - MCP Server having functionality to create new request with questions, get status of request, assign questions to legal or tax user, Answer a question and submit the request so that it is completed. It will use cosmos db to save all the information&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="340" width="320" x="1340" y="40" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-23" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="LegalAgent-2" vertex="1">
+          <mxGeometry height="60" width="120" x="1190" y="465" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-24" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;LegalAgent-2 is a Foundry Declarative Agent that allows user to -&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Get the questions assigned to the user using tool.&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. Get the answer to the questions from the users email using WorkIQ Email tool.&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;4. Answer the question and mark it submitted.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;It&amp;nbsp; has 2 tools -&amp;nbsp;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Work IQ Email - Built in Foundry Tool to get emails.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. L&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;egalTaxAssistantTools - MCP Server having functionality to get questions for a user, Answer a question for the user. It will use cosmos db to save all the information.&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="250" width="320" x="1340" y="370" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-25" parent="1" style="rounded=0;whiteSpace=wrap;html=1;" value="TaxAgent-2" vertex="1">
+          <mxGeometry height="60" width="120" x="1190" y="775" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-26" parent="1" style="text;html=1;whiteSpace=wrap;strokeColor=none;fillColor=none;align=left;verticalAlign=middle;rounded=0;" value="&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;TaxAgent-2 is a Foundry Declarative Agent that allows user to -&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Get the questions assigned to the user using tool.&lt;/span&gt;&lt;/div&gt;&lt;div style=&quot;&quot;&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. Get the answer to the questions from the users email using WorkIQ Email tool.&amp;nbsp;&amp;nbsp;&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;4. Answer the question and mark it submitted.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;It&amp;nbsp; has 2 tools -&amp;nbsp;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;1. Work IQ Email - Built in Foundry Tool to get emails.&lt;/span&gt;&lt;/div&gt;&lt;div&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;2. L&lt;/span&gt;&lt;span style=&quot;background-color: transparent; color: light-dark(rgb(0, 0, 0), rgb(255, 255, 255));&quot;&gt;egalTaxAssistantTools - MCP Server having functionality to get questions for a user, Answer a question for the user. It will use cosmos db to save all the information.&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;&lt;/div&gt;" vertex="1">
+          <mxGeometry height="250" width="320" x="1340" y="680" as="geometry" />
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-27" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-17" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="Q-n8uPKE0Pt-m7UyACJH-2" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1020" y="140" as="sourcePoint" />
+            <mxPoint x="1070" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-28" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-17" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-21" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1020" y="140" as="sourcePoint" />
+            <mxPoint x="1070" y="90" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-29" edge="1" parent="1" source="pElz31CkjSHs_Up43ZBx-17" style="endArrow=classic;html=1;rounded=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-23" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="1020" y="440" as="sourcePoint" />
+            <mxPoint x="1070" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+        <mxCell id="pElz31CkjSHs_Up43ZBx-30" edge="1" parent="1" style="endArrow=classic;html=1;rounded=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" target="pElz31CkjSHs_Up43ZBx-25" value="">
+          <mxGeometry height="50" relative="1" width="50" as="geometry">
+            <mxPoint x="930" y="270" as="sourcePoint" />
+            <mxPoint x="1070" y="390" as="targetPoint" />
+          </mxGeometry>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>
