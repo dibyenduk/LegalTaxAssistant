@@ -203,6 +203,53 @@ def _parse_email_results(raw: str) -> str:
     return result
 
 
+def _parse_copilot_chat_response(raw: str) -> str:
+    """Parse the copilot_chat response to extract the actual reply text.
+
+    The copilot_chat tool returns JSON like:
+      {"conversationId":"...", "reply":"", "rawResponse":"{...messages[].text...}"}
+    The "reply" field is often empty — the real content is in
+    rawResponse → messages (the second message is the assistant's response).
+    """
+    try:
+        outer = json.loads(raw)
+    except (json.JSONDecodeError, TypeError):
+        return raw  # Not JSON, return as-is
+
+    if not isinstance(outer, dict):
+        return raw
+
+    # If reply is non-empty, use it directly
+    if outer.get("reply"):
+        return outer["reply"]
+
+    # Extract from rawResponse → messages
+    raw_response = outer.get("rawResponse", "")
+    if not raw_response:
+        return raw
+
+    try:
+        inner = json.loads(raw_response)
+    except (json.JSONDecodeError, TypeError):
+        return raw
+
+    messages = inner.get("messages", [])
+    # The assistant's response is typically the second message
+    for msg in messages:
+        text = msg.get("text", "")
+        # Skip the user's own message (it echoes the query)
+        if text and text != outer.get("message", "") and len(text) > 50:
+            logger.info("_parse_copilot_chat_response: extracted %d chars", len(text))
+            return text
+
+    # Fallback: return all message texts joined
+    all_texts = [m.get("text", "") for m in messages if m.get("text")]
+    if all_texts:
+        return "\n\n".join(all_texts)
+
+    return raw
+
+
 def _get_toolbox_url() -> str:
     """Build the toolbox MCP endpoint URL."""
     project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
@@ -263,7 +310,7 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
                     text = item.get("text", "")
                     try:
                         parsed = json.loads(text)
-                        if isinstance(parsed, dict) and "reply" in parsed:
+                        if isinstance(parsed, dict) and parsed.get("reply"):
                             span.set_attribute("toolbox.response_preview", parsed["reply"][:200])
                             return parsed["reply"]
                         texts.append(text[:16000])
@@ -550,6 +597,8 @@ def search_m365_copilot(
     result = _call_toolbox_mcp("WorkIQCopilot.copilot_chat", {
         "message": message,
     })
+    # Parse copilot response — actual content is in rawResponse.messages[].text
+    result = _parse_copilot_chat_response(result)
     logger.info("search_m365_copilot RESULT length: %d, preview: %r", len(result), result[:500])
     return result
 
