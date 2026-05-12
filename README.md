@@ -3,9 +3,6 @@
 A Teams-based application that allows **Requestors** to submit legal and tax questions, which are automatically assigned to **Legal Experts** or **Tax Experts**. Built on **Microsoft AI Foundry** using the **Microsoft Agent Framework** with **Python**.
 
 ## Architecture
-
-See [`architecture/architecture-diagram.md`](architecture/architecture-diagram.md) for the full Mermaid architecture diagram.
-
 ```
 Teams Client → Teams Bot → Orchestrator (Hosted Agent) → Prompt Agents → MCP Server → Cosmos DB
 ```
