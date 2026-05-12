@@ -11,8 +11,8 @@ param location string
 @description('Principal ID of the current deployer (for Cosmos RBAC). Set via azd or leave empty.')
 param deployerPrincipalId string = ''
 
-@description('Login server for the shared container registry (e.g. foundrydemoncusacr.azurecr.io).')
-param containerRegistryLoginServer string = 'foundrydemoncusacr.azurecr.io'
+@description('Login server for the shared container registry (e.g. acr.azurecr.io).')
+param containerRegistryLoginServer string = ''
 
 var tags = {
   'azd-env-name': environmentName
