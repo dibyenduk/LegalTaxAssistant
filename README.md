@@ -36,19 +36,29 @@ Teams Client → Teams Bot → Orchestrator (Hosted Agent) → Prompt Agents →
 
 ```bash
 azd init
-azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT "foundrydemoncusacr.azurecr.io"
-azd env set AZURE_CONTAINER_REGISTRY_NAME "foundrydemoncusacr"
+azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT "<youracr.azurecr.io>"
+azd env set AZURE_CONTAINER_REGISTRY_NAME "youracrname"
 ```
 
 ### 2. Set required environment variables
 
 ```bash
-# Foundry project endpoint (required for agent provisioning)
+# Azure subscription and location
+azd env set AZURE_SUBSCRIPTION_ID "<your-subscription-id>"
+azd env set AZURE_LOCATION "westus3"
+
+# Foundry project endpoint (required for agent provisioning and orchestrator deployment)
 azd env set FOUNDRY_PROJECT_ENDPOINT "https://<resource>.services.ai.azure.com/api/projects/<project>"
+azd env set AZURE_AI_PROJECT_ENDPOINT "https://<resource>.services.ai.azure.com/api/projects/<project>"
 
 # Model deployment name
-azd env set MODEL_DEPLOYMENT_NAME "gpt-4o"
+azd env set MODEL_DEPLOYMENT_NAME "gpt-5.4"
+
+# Enable hosted agents for orchestrator deployment
+azd env set ENABLE_HOSTED_AGENTS "true"
 ```
+
+> **Note:** `AZURE_COSMOS_ENDPOINT`, `AZURE_CONTAINER_APP_FQDN`, `AZURE_RESOURCE_GROUP`, and `SERVICE_MCP_SERVER_IMAGE_NAME` are auto-populated by `azd provision` from Bicep outputs. You do not need to set them manually.
 
 ---
 
