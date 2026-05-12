@@ -25,7 +25,7 @@ Teams Client → Teams Bot → Orchestrator (Hosted Agent) → Prompt Agents →
 - [Azure CLI](https://learn.microsoft.com/cli/azure/install-azure-cli)
 - [Python 3.11+](https://www.python.org/downloads/)
 - [Docker Desktop](https://www.docker.com/products/docker-desktop/) (for local testing)
-- An **Azure AI Foundry** project with a deployed GPT model
+- An **Azure AI Foundry** project with a deployed GPT model (gpt-5.4)
 - An **Azure Container Registry** (ACR) accessible from Foundry
 
 ---
