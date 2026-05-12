@@ -36,16 +36,18 @@ Teams Client → Teams Bot → Orchestrator (Hosted Agent) → Prompt Agents →
 
 ```bash
 azd init
-azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT "<youracr.azurecr.io>"
-azd env set AZURE_CONTAINER_REGISTRY_NAME "youracrname"
 ```
+
+> `azd init` will prompt you for `AZURE_SUBSCRIPTION_ID` and `AZURE_LOCATION` automatically.
 
 ### 2. Set required environment variables
 
+These variables must be set manually — they reference external resources not provisioned by this project's Bicep templates:
+
 ```bash
-# Azure subscription and location
-azd env set AZURE_SUBSCRIPTION_ID "<your-subscription-id>"
-azd env set AZURE_LOCATION "westus3"
+# Azure Container Registry (shared ACR, not created by this project's infra)
+azd env set AZURE_CONTAINER_REGISTRY_ENDPOINT "<youracr>.azurecr.io"
+azd env set AZURE_CONTAINER_REGISTRY_NAME "<youracr>"
 
 # Foundry project endpoint (required for agent provisioning and orchestrator deployment)
 azd env set FOUNDRY_PROJECT_ENDPOINT "https://<resource>.services.ai.azure.com/api/projects/<project>"
@@ -58,7 +60,19 @@ azd env set MODEL_DEPLOYMENT_NAME "gpt-5.4"
 azd env set ENABLE_HOSTED_AGENTS "true"
 ```
 
-> **Note:** `AZURE_COSMOS_ENDPOINT`, `AZURE_CONTAINER_APP_FQDN`, `AZURE_RESOURCE_GROUP`, and `SERVICE_MCP_SERVER_IMAGE_NAME` are auto-populated by `azd provision` from Bicep outputs. You do not need to set them manually.
+### Auto-populated variables
+
+The following are set automatically by `azd init` or `azd provision` — do **not** set them manually:
+
+| Variable | Set by |
+|----------|--------|
+| `AZURE_SUBSCRIPTION_ID` | `azd init` (prompted) |
+| `AZURE_LOCATION` | `azd init` (prompted) |
+| `AZURE_ENV_NAME` | `azd init` (prompted) |
+| `AZURE_RESOURCE_GROUP` | `azd provision` (Bicep output) |
+| `AZURE_COSMOS_ENDPOINT` | `azd provision` (Bicep output) |
+| `AZURE_CONTAINER_APP_FQDN` | `azd provision` (Bicep output) |
+| `SERVICE_MCP_SERVER_IMAGE_NAME` | `azd deploy` (auto-generated) |
 
 ---
 
