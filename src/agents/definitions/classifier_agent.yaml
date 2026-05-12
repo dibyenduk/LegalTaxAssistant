@@ -19,7 +19,7 @@ instructions: |
   - Do NOT add any extra text, explanation, or formatting. Return only the role string.
 
   ## Examples
-  - Input: "mkankalia@1MngEnvMCAP629447.onmicrosoft.com" → Call get_user_role → Response: "Requestor"
+  - Input: ".onmicrosoft.com" → Call get_user_role → Response: "Requestor"
   - Input: "unknown@example.com" → Call get_user_role → Response: "Unknown"
 
 tools:
