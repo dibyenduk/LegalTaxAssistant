@@ -253,7 +253,7 @@ class LegalTaxTools:
         email_message_id: str | None = None,
         actor_email: str | None = None,
     ) -> dict[str, Any]:
-        """Submit an answer to a question."""
+        """Record an answer and finalize the question as Submitted."""
         # Validate question exists and is in correct state
         question = None
         if request_id:
@@ -315,7 +315,7 @@ class LegalTaxTools:
     def mark_question_submitted(
         self, question_id: str, actor_email: str, request_id: str | None = None
     ) -> dict[str, Any]:
-        """Mark a question as submitted (answer finalized)."""
+        """Finalize a legacy Answered question; leave Submitted questions unchanged."""
         question = None
         if request_id:
             question = self.db.read_item("Questions", question_id, partition_key=request_id)
@@ -333,6 +333,9 @@ class LegalTaxTools:
 
         if not question:
             return {"error": f"Question not found: {question_id}"}
+
+        if question["status"] == QuestionStatus.SUBMITTED:
+            return {"id": question["id"], "status": question["status"]}
 
         if question["status"] != QuestionStatus.ANSWERED:
             return {

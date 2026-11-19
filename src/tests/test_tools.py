@@ -9,8 +9,10 @@ import json
 import copy
 import unittest
 from typing import Any
+from unittest.mock import patch
 from uuid import uuid4
 
+from mcp_server import server
 from mcp_server.models import (
     ExpertType,
     QuestionStatus,
@@ -221,14 +223,25 @@ class TestSubmitAnswer(unittest.TestCase):
 
     def test_submit_answer(self):
         result = self.tools.submit_answer(
-            self.question_id,
-            self.request_id,
-            "expert@test.com",
-            "The answer is 42.",
-            "Manual",
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="The answer is 42.",
+            source="Manual",
         )
         self.assertIn("id", result)
         self.assertEqual(result["answeredBy"], "expert@test.com")
+        answer = self.db.read_item("Answers", result["id"], self.question_id)
+        self.assertEqual(answer["answerText"], "The answer is 42.")
+        self.assertEqual(answer["requestId"], self.request_id)
+        self.assertEqual(answer["questionId"], self.question_id)
+        question = self.db.read_item("Questions", self.question_id, self.request_id)
+        self.assertEqual(question["status"], QuestionStatus.SUBMITTED)
+        audit = self.db._containers["AuditLog"][-1]
+        self.assertEqual(audit["action"], "Answered")
+        self.assertEqual(audit["entityId"], result["id"])
+        self.assertEqual(audit["requestId"], self.request_id)
+        self.assertEqual(audit["performedBy"], "expert@test.com")
 
     def test_cannot_answer_unassigned(self):
         # Create a new unassigned question
@@ -238,12 +251,36 @@ class TestSubmitAnswer(unittest.TestCase):
             "req@test.com",
         )
         result = self.tools.submit_answer(
-            questions[0]["id"],
-            self.request_id,
-            "expert@test.com",
-            "Answer",
+            question_id=questions[0]["id"],
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="Answer",
         )
         self.assertIn("error", result)
+        self.assertEqual(self.db._containers["Answers"], [])
+
+    def test_submit_answer_without_request_id(self):
+        result = self.tools.submit_answer(
+            question_id=self.question_id,
+            answered_by="expert@test.com",
+            answer_text="Answer",
+        )
+        self.assertNotIn("error", result)
+        answer = self.db.read_item("Answers", result["id"], self.question_id)
+        self.assertEqual(answer["requestId"], self.request_id)
+
+    def test_cannot_answer_submitted_question(self):
+        arguments = {
+            "question_id": self.question_id,
+            "request_id": self.request_id,
+            "answered_by": "expert@test.com",
+            "answer_text": "Answer",
+        }
+        self.tools.submit_answer(**arguments)
+        before = copy.deepcopy(self.db._containers)
+        result = self.tools.submit_answer(**arguments)
+        self.assertIn("error", result)
+        self.assertEqual(self.db._containers, before)
 
 
 class TestMarkQuestionSubmitted(unittest.TestCase):
@@ -262,14 +299,65 @@ class TestMarkQuestionSubmitted(unittest.TestCase):
             self.question_id, self.request_id, "expert@test.com", "req@test.com"
         )
         self.tools.submit_answer(
-            self.question_id, self.request_id, "expert@test.com", "Answer"
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="Answer",
         )
 
     def test_mark_submitted(self):
+        before = copy.deepcopy(self.db._containers)
+        with patch.object(self.db, "replace_item", wraps=self.db.replace_item) as replace:
+            with patch.object(self.db, "create_item", wraps=self.db.create_item) as create:
+                for _ in range(2):
+                    result = self.tools.mark_question_submitted(
+                        question_id=self.question_id,
+                        request_id=self.request_id,
+                        actor_email="expert@test.com",
+                    )
+                    self.assertEqual(
+                        result,
+                        {"id": self.question_id, "status": QuestionStatus.SUBMITTED},
+                    )
+                replace.assert_not_called()
+                create.assert_not_called()
+        self.assertEqual(self.db._containers, before)
+
+    def test_mark_legacy_answered_question(self):
+        question = self.db.read_item("Questions", self.question_id, self.request_id)
+        question["status"] = QuestionStatus.ANSWERED
+        self.db.replace_item("Questions", self.question_id, question)
+        audit_count = len(self.db._containers["AuditLog"])
+
         result = self.tools.mark_question_submitted(
-            self.question_id, self.request_id, "expert@test.com"
+            question_id=self.question_id,
+            request_id=self.request_id,
+            actor_email="expert@test.com",
         )
         self.assertEqual(result["status"], QuestionStatus.SUBMITTED)
+        self.assertEqual(len(self.db._containers["AuditLog"]), audit_count + 1)
+        audit = self.db._containers["AuditLog"][-1]
+        self.assertEqual(audit["entityId"], self.question_id)
+        self.assertEqual(audit["requestId"], self.request_id)
+        self.assertEqual(audit["action"], "Submitted")
+        self.assertEqual(audit["performedBy"], "expert@test.com")
+
+    def test_mark_submitted_without_request_id(self):
+        before = copy.deepcopy(self.db._containers)
+        result = self.tools.mark_question_submitted(
+            question_id=self.question_id,
+            actor_email="expert@test.com",
+        )
+        self.assertEqual(result["status"], QuestionStatus.SUBMITTED)
+        self.assertEqual(self.db._containers, before)
+
+    def test_cannot_submit_missing_question(self):
+        result = self.tools.mark_question_submitted(
+            question_id="missing",
+            request_id=self.request_id,
+            actor_email="expert@test.com",
+        )
+        self.assertIn("error", result)
 
     def test_cannot_submit_unanswered(self):
         # Create another assigned-but-unanswered question
@@ -282,7 +370,9 @@ class TestMarkQuestionSubmitted(unittest.TestCase):
             questions[0]["id"], self.request_id, "expert@test.com", "req@test.com"
         )
         result = self.tools.mark_question_submitted(
-            questions[0]["id"], self.request_id, "expert@test.com"
+            question_id=questions[0]["id"],
+            request_id=self.request_id,
+            actor_email="expert@test.com",
         )
         self.assertIn("error", result)
 
@@ -303,10 +393,10 @@ class TestSubmitRequest(unittest.TestCase):
             self.question_id, self.request_id, "expert@test.com", "req@test.com"
         )
         self.tools.submit_answer(
-            self.question_id, self.request_id, "expert@test.com", "Answer"
-        )
-        self.tools.mark_question_submitted(
-            self.question_id, self.request_id, "expert@test.com"
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="Answer",
         )
 
     def test_submit_request(self):
@@ -447,15 +537,17 @@ class TestFullWorkflow(unittest.TestCase):
 
         # 4. Expert answers
         answer = tools.submit_answer(
-            q_id, req["id"], "legal@test.com", "The answer.", actor_email="legal@test.com"
+            question_id=q_id,
+            request_id=req["id"],
+            answered_by="legal@test.com",
+            answer_text="The answer.",
+            actor_email="legal@test.com",
         )
         self.assertNotIn("error", answer)
+        question = db.read_item("Questions", q_id, req["id"])
+        self.assertEqual(question["status"], "Submitted")
 
-        # 5. Expert marks submitted
-        mark = tools.mark_question_submitted(q_id, req["id"], "legal@test.com")
-        self.assertEqual(mark["status"], "Submitted")
-
-        # 6. Requestor submits request
+        # 5. Requestor submits request
         submit = tools.submit_request(req["id"], "req@test.com")
         self.assertEqual(submit["status"], "Submitted")
 
@@ -466,6 +558,125 @@ class TestFullWorkflow(unittest.TestCase):
         self.assertIn("Assigned", actions)
         self.assertIn("Answered", actions)
         self.assertIn("Submitted", actions)
+
+
+class TestMCPSubmission(unittest.TestCase):
+    def setUp(self):
+        self.db = MockCosmosDBClient()
+        self.tools = LegalTaxTools(self.db)
+        request = self.tools.create_request("req@test.com", "MCP submission", "req@test.com")
+        self.request_id = request["id"]
+        questions = self.tools.add_questions_to_request(
+            self.request_id,
+            [{"questionText": "Legal question?", "questionType": "Legal"}],
+            "req@test.com",
+        )
+        self.question_id = questions[0]["id"]
+        self.tools.assign_question(
+            self.question_id, self.request_id, "expert@test.com", "req@test.com"
+        )
+        patcher = patch.object(server, "get_tools", return_value=self.tools)
+        patcher.start()
+        self.addCleanup(patcher.stop)
+
+    def test_submit_answer_default_options(self):
+        result = json.loads(server.submit_answer(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="The manual answer.",
+        ))
+        self.assertNotIn("error", result)
+        answer = self.db.read_item("Answers", result["id"], self.question_id)
+        self.assertEqual(answer["questionId"], self.question_id)
+        self.assertEqual(answer["requestId"], self.request_id)
+        self.assertEqual(answer["answeredBy"], "expert@test.com")
+        self.assertEqual(answer["answerText"], "The manual answer.")
+        self.assertEqual(answer["source"], "Manual")
+        self.assertIsNone(answer["emailMessageId"])
+        question = self.db.read_item("Questions", self.question_id, self.request_id)
+        self.assertEqual(question["status"], QuestionStatus.SUBMITTED)
+        audit = self.db._containers["AuditLog"][-1]
+        self.assertEqual(audit["performedBy"], "expert@test.com")
+        self.assertEqual(audit["requestId"], self.request_id)
+        self.assertEqual(audit["entityId"], result["id"])
+        self.assertEqual(audit["action"], "Answered")
+
+    def test_submit_email_answer_with_explicit_actor(self):
+        result = json.loads(server.submit_answer(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="The email-based answer.",
+            source="Email",
+            email_message_id="message-123",
+            actor_email="actor@test.com",
+        ))
+        self.assertNotIn("error", result)
+        answer = self.db.read_item("Answers", result["id"], self.question_id)
+        self.assertEqual(answer["questionId"], self.question_id)
+        self.assertEqual(answer["requestId"], self.request_id)
+        self.assertEqual(answer["answeredBy"], "expert@test.com")
+        self.assertEqual(answer["answerText"], "The email-based answer.")
+        self.assertEqual(answer["source"], "Email")
+        self.assertEqual(answer["emailMessageId"], "message-123")
+        self.assertEqual(
+            self.db._containers["AuditLog"][-1]["performedBy"], "actor@test.com"
+        )
+
+    def test_finalize_legacy_answer_then_repeat_without_writes(self):
+        question = self.db.read_item("Questions", self.question_id, self.request_id)
+        question["status"] = QuestionStatus.ANSWERED
+        self.db.replace_item("Questions", self.question_id, question)
+        result = json.loads(server.mark_question_submitted(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            actor_email="expert@test.com",
+        ))
+        self.assertEqual(result["status"], QuestionStatus.SUBMITTED)
+        audit = self.db._containers["AuditLog"][-1]
+        self.assertEqual(audit["requestId"], self.request_id)
+        self.assertEqual(audit["performedBy"], "expert@test.com")
+        self.assertEqual(audit["action"], "Submitted")
+        before = copy.deepcopy(self.db._containers)
+        repeated = json.loads(server.mark_question_submitted(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            actor_email="expert@test.com",
+        ))
+        self.assertEqual(repeated, result)
+        self.assertEqual(self.db._containers, before)
+
+    def test_cannot_finalize_unanswered_question(self):
+        before = copy.deepcopy(self.db._containers)
+        result = json.loads(server.mark_question_submitted(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            actor_email="expert@test.com",
+        ))
+        self.assertIn("error", result)
+        self.assertEqual(self.db._containers, before)
+
+    def test_submit_request_after_answer_without_separate_finalization(self):
+        answer = json.loads(server.submit_answer(
+            question_id=self.question_id,
+            request_id=self.request_id,
+            answered_by="expert@test.com",
+            answer_text="Confirmed answer.",
+        ))
+        self.assertNotIn("error", answer)
+        result = json.loads(server.submit_request(
+            request_id=self.request_id, actor_email="req@test.com"
+        ))
+        self.assertEqual(result["status"], RequestStatus.SUBMITTED)
+
+    def test_cannot_submit_request_with_unfinished_question(self):
+        before = copy.deepcopy(self.db._containers)
+        result = json.loads(server.submit_request(
+            request_id=self.request_id, actor_email="req@test.com"
+        ))
+        self.assertIn("error", result)
+        self.assertEqual(self.db._containers, before)
 
 
 if __name__ == "__main__":

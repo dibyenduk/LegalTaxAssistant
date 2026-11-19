@@ -18,6 +18,8 @@ template:
   environment_variables:
     - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
       value: "{{AZURE_AI_MODEL_DEPLOYMENT_NAME}}"
+    - name: FOUNDRY_PROJECT_ENDPOINT
+      value: "{{FOUNDRY_PROJECT_ENDPOINT}}"
     - name: CLASSIFIER_AGENT_NAME
       value: ClassifierAgent-2
     - name: REQUESTOR_AGENT_NAME
@@ -26,6 +28,8 @@ template:
       value: LegalAgent-2
     - name: TAX_AGENT_NAME
       value: TaxAgent-2
+    - name: DKWORKIQ_TOOLBOX_NAME
+      value: DkWorkIQMail
 resources:
   - kind: model
     id: gpt-5.4-mini

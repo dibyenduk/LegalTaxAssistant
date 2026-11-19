@@ -16,6 +16,14 @@ resource cosmosAccount 'Microsoft.DocumentDB/databaseAccounts@2024-05-15' = {
   tags: tags
   kind: 'GlobalDocumentDB'
   properties: {
+    publicNetworkAccess: 'Disabled'
+    disableLocalAuth: true
+    enableAutomaticFailover: true
+    minimalTlsVersion: 'Tls12'
+    defaultIdentity: 'FirstPartyIdentity'
+    analyticalStorageConfiguration: {
+      schemaType: 'WellDefined'
+    }
     databaseAccountOfferType: 'Standard'
     locations: [
       {

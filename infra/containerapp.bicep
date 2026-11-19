@@ -13,11 +13,11 @@ param cosmosAccountEndpoint string
 @description('Cosmos DB account name.')
 param cosmosAccountName string
 
-@description('Login server for the shared container registry (e.g. foundrydemoncusacr.azurecr.io).')
-param containerRegistryLoginServer string
+@description('Dedicated subnet in the application VNet.')
+param infrastructureSubnetId string
 
-var containerAppsEnvName = 'cae-${resourceToken}'
-var containerAppName = 'ca-mcp-server-${resourceToken}'
+var containerAppsEnvName = 'cae-mcp-private-${resourceToken}'
+var containerAppName = 'ca-mcp-private-${resourceToken}'
 var logAnalyticsName = 'log-${resourceToken}'
 
 resource logAnalytics 'Microsoft.OperationalInsights/workspaces@2023-09-01' = {
@@ -37,6 +37,16 @@ resource containerAppsEnv 'Microsoft.App/managedEnvironments@2024-03-01' = {
   location: location
   tags: tags
   properties: {
+    vnetConfiguration: {
+      infrastructureSubnetId: infrastructureSubnetId
+      internal: false
+    }
+    workloadProfiles: [
+      {
+        name: 'Consumption'
+        workloadProfileType: 'Consumption'
+      }
+    ]
     appLogsConfiguration: {
       destination: 'log-analytics'
       logAnalyticsConfiguration: {
@@ -65,16 +75,12 @@ resource containerApp 'Microsoft.App/containerApps@2024-03-01' = {
     configuration: {
       ingress: {
         external: true
+        allowInsecure: false
         targetPort: 8080
         transport: 'http'
       }
-      registries: [
-        {
-          server: containerRegistryLoginServer
-          identity: 'system'
-        }
-      ]
     }
+    workloadProfileName: 'Consumption'
     template: {
       containers: [
         {
@@ -149,4 +155,5 @@ resource cosmosRoleAssignment 'Microsoft.DocumentDB/databaseAccounts/sqlRoleAssi
 
 output containerAppFqdn string = containerApp.properties.configuration.ingress.fqdn
 output containerAppPrincipalId string = containerApp.identity.principalId
-output containerRegistryEndpoint string = containerRegistryLoginServer
+output containerAppName string = containerApp.name
+output environmentName string = containerAppsEnv.name

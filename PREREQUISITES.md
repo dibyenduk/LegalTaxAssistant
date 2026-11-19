@@ -9,7 +9,7 @@ Complete list of dependencies needed to deploy and run the Legal & Tax Assistant
 | Requirement | Details |
 |-------------|---------|
 | **Azure AD (Entra ID) Tenant** | A Microsoft Entra ID tenant. Entra ID is included free with any Azure subscription — no separate license is needed |
-| **Azure Subscription** | Active subscription with **Contributor** access |
+| **Azure Subscription** | Active subscription with **Contributor** access and permission to create the required role assignments (for example, Role Based Access Control Administrator at the appropriate scope) |
 | **At least 3 Azure AD Users** | One Requestor, one Legal Expert, one Tax Expert (for end-to-end testing) |
 
 ---
@@ -33,7 +33,7 @@ Complete list of dependencies needed to deploy and run the Legal & Tax Assistant
 | **Azure AI Services resource** | Multi-service Cognitive Services resource (e.g., `foundry-demo-ncus-resource`) |
 | **Foundry Project** | A project within the AI Services resource (e.g., `prj-foundry-demo-ncus-dev-001`) |
 | **Model Deployment** | Deploy `gpt-5.4` (or `gpt-5.4-mini`) model in the Foundry project |
-| **Azure Container Registry** | An ACR instance accessible from Foundry for hosting the orchestrator container (e.g., `foundrydemoncusacr`) |
+| **Azure Container Registry** | An existing ACR in the application's resource group for managed-identity image pulls. This migration uses `acrjvtju6jxst6a6`; Foundry remains an external prerequisite |
 | **Hosted Agents enabled** | Hosted agent capability must be enabled on the Foundry project |
 
 ---
@@ -62,8 +62,17 @@ These are created automatically by `azd provision` — you do **not** need to cr
 | Resource | Provider | Purpose |
 |----------|----------|---------|
 | Cosmos DB Account + Database + Containers | `Microsoft.DocumentDB` | Stores requests, questions, answers, user roles |
-| Container App + Managed Environment | `Microsoft.App` | Hosts the MCP Server |
+| New Container App + VNet-integrated Managed Environment | `Microsoft.App` | Hosts the MCP Server alongside the retained legacy app/environment |
+| VNet + Dedicated Subnets | `Microsoft.Network` | Separates Container Apps infrastructure from the Cosmos private endpoint |
+| Cosmos Private Endpoint + New Private DNS Zone and VNet Link | `Microsoft.Network` | Keeps Cosmos connectivity private; all customer-managed networking is in the application resource group |
 | Log Analytics Workspace | `Microsoft.OperationalInsights` | Container App logging |
+
+Cosmos public network access and local/key authentication remain disabled.
+Seeding or querying Cosmos from a developer machine or CI runner requires an
+approved private-network route and private DNS; ordinary internet connectivity
+and Contributor access are not sufficient. No VPN or peering is created by this
+project. See the [private Cosmos migration runbook](docs/private-cosmos-migration.md)
+for local validation, deployment approval, and connectivity verification.
 
 ---
 

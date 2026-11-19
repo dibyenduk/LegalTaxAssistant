@@ -107,15 +107,15 @@ def submit_answer(
     email_message_id: str = "",
     actor_email: str = "",
 ) -> str:
-    """Submit an answer to a question. source can be 'Manual' or 'Email'. If from email, provide email_message_id."""
+    """Submit an answer and finalize the question as 'Submitted'. source can be 'Manual' or 'Email'. If from email, provide email_message_id."""
     result = get_tools().submit_answer(
-        question_id,
-        request_id,
-        answered_by,
-        answer_text,
-        source,
-        email_message_id or None,
-        actor_email or answered_by,
+        question_id=question_id,
+        request_id=request_id,
+        answered_by=answered_by,
+        answer_text=answer_text,
+        source=source,
+        email_message_id=email_message_id or None,
+        actor_email=actor_email or answered_by,
     )
     return json.dumps(result)
 
@@ -124,8 +124,12 @@ def submit_answer(
 def mark_question_submitted(
     question_id: str, request_id: str, actor_email: str
 ) -> str:
-    """Mark a question as submitted (answer finalized). The question must be in 'Answered' status."""
-    result = get_tools().mark_question_submitted(question_id, request_id, actor_email)
+    """Compatibility tool: finalize a legacy 'Answered' question, or return an already 'Submitted' question unchanged. Not needed after submit_answer."""
+    result = get_tools().mark_question_submitted(
+        question_id=question_id,
+        request_id=request_id,
+        actor_email=actor_email,
+    )
     return json.dumps(result)
 
 

@@ -25,6 +25,7 @@ import httpx
 from agent_framework import Agent, tool
 from agent_framework.foundry import FoundryChatClient
 from agent_framework_foundry_hosting import ResponsesHostServer
+from azure.ai.agentserver.core import get_request_context
 from azure.identity import DefaultAzureCredential, get_bearer_token_provider
 
 # ---------------------------------------------------------------------------
@@ -250,14 +251,66 @@ def _parse_copilot_chat_response(raw: str) -> str:
     return raw
 
 
-def _get_toolbox_url() -> str:
-    """Build the toolbox MCP endpoint URL."""
-    project_endpoint = os.environ["FOUNDRY_PROJECT_ENDPOINT"]
-    toolbox_name = os.environ.get("DKWORKIQ_TOOLBOX_NAME", "DkWorkIQMail")
-    return os.environ.get(
-        "DKWORKIQ_TOOLBOX_ENDPOINT",
-        f"{project_endpoint}/toolboxes/{toolbox_name}/mcp?api-version=v1",
-    )
+def _get_toolbox_base_name() -> str:
+    """Return base toolbox name used to build suffixed toolbox endpoints."""
+    return os.environ.get("DKWORKIQ_TOOLBOX_NAME", "DkWorkIQMail")
+
+
+def _get_toolbox_url_for_tool(tool_name: str) -> str:
+    """Build a deterministic toolbox URL based on the tool namespace.
+
+    Tool namespaces map to toolbox suffixes:
+    - WorkIQUser___* -> -User
+    - WorkIQCopilot___* -> -Copilot
+    - WorkIQOneDrive___* -> -OneDrive
+    - WorkIQMail___* -> -Mail
+    """
+    project_endpoint = os.environ.get("FOUNDRY_PROJECT_ENDPOINT") or os.environ.get("AZURE_AI_PROJECT_ENDPOINT")
+    if not project_endpoint:
+        raise ValueError(
+            "Missing project endpoint. Set FOUNDRY_PROJECT_ENDPOINT or AZURE_AI_PROJECT_ENDPOINT."
+        )
+
+    if tool_name.startswith("WorkIQUser___"):
+        suffix = "-User"
+    elif tool_name.startswith("WorkIQCopilot___"):
+        suffix = "-Copilot"
+    elif tool_name.startswith("WorkIQOneDrive___"):
+        suffix = "-OneDrive"
+    else:
+        suffix = "-Mail"
+
+    toolbox_name = f"{_get_toolbox_base_name()}{suffix}"
+    return f"{project_endpoint}/toolboxes/{toolbox_name}/mcp?api-version=v1"
+
+
+# Cache of tool definitions per toolbox URL, populated lazily via tools/list.
+_toolbox_tools_cache: dict[str, list] = {}
+
+
+def _get_toolbox_tool_defs(url: str, headers: dict) -> list:
+    """Return the tool definitions for this toolbox URL (cached after first call).
+
+    Calls tools/list once and caches the result.  The definitions are used to
+    populate _meta.tools in every subsequent tools/call request so that Foundry's
+    tool-config validation passes.
+    """
+    if url in _toolbox_tools_cache:
+        return _toolbox_tools_cache[url]
+
+    list_payload = {"jsonrpc": "2.0", "id": "0", "method": "tools/list", "params": {}}
+    try:
+        with httpx.Client(timeout=30.0) as client:
+            resp = client.post(url, json=list_payload, headers=headers)
+            resp.raise_for_status()
+            data = resp.json()
+        tools = data.get("result", {}).get("tools", [])
+        logger.info("tools/list returned %d tool(s) from toolbox at %s", len(tools), url)
+        _toolbox_tools_cache[url] = tools
+        return tools
+    except Exception as exc:
+        logger.warning("tools/list failed for %s: %s — proceeding without _meta.tools", url, exc)
+        return []
 
 
 def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
@@ -274,18 +327,34 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
             "gen_ai.operation.name": "execute_tool",
         },
     ) as span:
-        url = _get_toolbox_url()
         headers = {
             "Authorization": f"Bearer {_token_provider()}",
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Foundry-Features": "Toolboxes=V1Preview",
         }
+        # The toolbox resolves delegated identity from this request's trusted call context.
+        headers.update(get_request_context().platform_headers())
+
+        # Route directly to the suffixed toolbox for this namespace and include
+        # matching tool config in _meta.tools to satisfy Foundry validation.
+        url = _get_toolbox_url_for_tool(tool_name)
+        defs = _get_toolbox_tool_defs(url, headers)
+        meta_tools = [t for t in defs if str(t.get("name", "")).lower() == tool_name.lower()]
+        if not meta_tools:
+            logger.warning("No matching tool config for %s in toolbox %s", tool_name, url)
+
         payload = {
             "jsonrpc": "2.0",
             "id": "1",
             "method": "tools/call",
-            "params": {"name": tool_name, "arguments": arguments},
+            "params": {
+                "name": tool_name,
+                "arguments": arguments,
+                "_meta": {
+                    "tools": meta_tools
+                },
+            },
         }
         logger.info("Calling toolbox MCP: %s with args: %s", tool_name, json.dumps(arguments)[:200])
 
@@ -306,7 +375,8 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
             content_items = result.get("content", [])
             texts = []
             for item in content_items:
-                if item.get("type") == "text":
+                item_type = item.get("type")
+                if item_type == "text":
                     text = item.get("text", "")
                     try:
                         parsed = json.loads(text)
@@ -316,6 +386,13 @@ def _call_toolbox_mcp(tool_name: str, arguments: dict) -> str:
                         texts.append(text[:16000])
                     except (json.JSONDecodeError, TypeError):
                         texts.append(text[:16000])
+                elif item_type in {"json", "structured"}:
+                    payload = item.get("json") or item.get("data") or item
+                    texts.append(json.dumps(payload, ensure_ascii=True)[:16000])
+
+            # Some MCP implementations return data in structuredContent instead of content[].
+            if not texts and isinstance(result.get("structuredContent"), dict):
+                texts.append(json.dumps(result["structuredContent"], ensure_ascii=True)[:16000])
 
             output = "\n".join(texts) if texts else "(no content returned)"
             span.set_attribute("toolbox.response_preview", output[:200])
@@ -427,8 +504,7 @@ def route_to_legal_agent(
 
     The LegalAgent has access to the LegalTaxTools MCP server and can:
     - View assigned legal questions (get_assigned_questions)
-    - Submit answers to legal questions (submit_answer)
-    - Mark questions as submitted/finalized (mark_question_submitted)
+    - Submit answers and finalize legal questions (submit_answer)
 
     Include the expert's email and any relevant context in the message.
     """
@@ -448,8 +524,7 @@ def route_to_tax_agent(
 
     The TaxAgent has access to the LegalTaxTools MCP server and can:
     - View assigned tax questions (get_assigned_questions)
-    - Submit answers to tax questions (submit_answer)
-    - Mark questions as submitted/finalized (mark_question_submitted)
+    - Submit answers and finalize tax questions (submit_answer)
 
     Include the expert's email and any relevant context in the message.
     """
@@ -475,10 +550,10 @@ def get_current_user() -> str:
     """
     with tracer.start_as_current_span(
         "get_current_user",
-        attributes={"gen_ai.operation.name": "execute_tool", "toolbox.tool": "WorkIQUser.GetMyDetails"},
+        attributes={"gen_ai.operation.name": "execute_tool", "toolbox.tool": "WorkIQUser___GetMyDetails"},
     ):
         logger.info("get_current_user called")
-        return _call_toolbox_mcp("WorkIQUser.GetMyDetails", {
+        return _call_toolbox_mcp("WorkIQUser___GetMyDetails", {
             "select": "displayName,mail,userPrincipalName,jobTitle"
         })
 
@@ -494,7 +569,7 @@ def search_emails(
     use search_emails_query instead.
     """
     logger.info("search_emails: %s", message[:100])
-    return _call_toolbox_mcp("WorkIQMail.SearchMessages", {"message": message})
+    return _call_toolbox_mcp("WorkIQMail___SearchMessages", {"message": message})
 
 
 @tool
@@ -518,7 +593,7 @@ def search_emails_query(
     logger.info("search_emails_query INPUT: %r", query_parameters[:150])
     query_parameters = _fix_search_query(query_parameters)
     logger.info("search_emails_query OUTPUT: %r", query_parameters[:150])
-    result = _call_toolbox_mcp("WorkIQMail.SearchMessagesQueryParameters", {
+    result = _call_toolbox_mcp("WorkIQMail___SearchMessagesQueryParameters", {
         "queryParameters": query_parameters,
         "preferTextBody": True,
     })
@@ -537,7 +612,7 @@ def get_email_message(
     Returns the complete email including body, headers, and attachments info.
     """
     logger.info("get_email_message: id=%s", message_id)
-    return _call_toolbox_mcp("WorkIQMail.GetMessage", {"messageId": message_id})
+    return _call_toolbox_mcp("WorkIQMail___GetMessage", {"messageId": message_id})
 
 
 @tool
@@ -553,7 +628,7 @@ def search_onedrive(
     or says "check my documents" / "find in my files".
     """
     logger.info("search_onedrive: %s", search_query[:100])
-    result = _call_toolbox_mcp("WorkIQOneDrive.findFileOrFolderInMyDrive", {
+    result = _call_toolbox_mcp("WorkIQOneDrive___findFileOrFolderInMyDrive", {
         "searchQuery": search_query,
     })
     logger.info("search_onedrive RESULT length: %d, preview: %r", len(result), result[:500])
@@ -573,7 +648,7 @@ def read_onedrive_file(
     Requires the file's DriveItem ID (from search_onedrive results).
     """
     logger.info("read_onedrive_file: id=%s", file_id)
-    result = _call_toolbox_mcp("WorkIQOneDrive.readSmallTextFileFromMyOnedrive", {
+    result = _call_toolbox_mcp("WorkIQOneDrive___readSmallTextFileFromMyOnedrive", {
         "fileId": file_id,
     })
     logger.info("read_onedrive_file RESULT length: %d", len(result))
@@ -594,7 +669,7 @@ def search_m365_copilot(
     Also searches emails, chats, and SharePoint content.
     """
     logger.info("search_m365_copilot: %s", message[:100])
-    result = _call_toolbox_mcp("WorkIQCopilot.copilot_chat", {
+    result = _call_toolbox_mcp("WorkIQCopilot___copilot_chat", {
         "message": message,
     })
     # Parse copilot response — actual content is in rawResponse.messages[].text
@@ -697,7 +772,8 @@ When the user explicitly asks to search their **email/inbox** for an answer:
    answer that directly addresses the assigned question. Do NOT just paste the
    raw email. Extract the relevant information, summarize it, and phrase it as
    a proper response to the question.
-4. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
+4. **Confirm, then route** — show the drafted answer and ask for confirmation
+   ONCE. Only after confirmation, call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
    - The question ID AND request ID (BOTH REQUIRED — from step 0)
@@ -728,7 +804,8 @@ something broad like "find the answer in my stuff" / "check my documents":
    answer that directly addresses the assigned question. Do NOT just paste the
    raw content. Extract the relevant information, summarize it, and phrase it as
    a proper response to the question.
-3. **Route to specialist with drafted answer** — call `route_to_legal_agent` or
+3. **Confirm, then route** — show the drafted answer and ask for confirmation
+   ONCE. Only after confirmation, call `route_to_legal_agent` or
    `route_to_tax_agent` with a message that includes:
    - The expert's email
    - The question ID AND request ID (BOTH REQUIRED — from step 0)
@@ -763,6 +840,8 @@ When the expert writes their own answer (not from email or files):
    Answer text: [user's answer text]"
 
 ## Submission Rules
+- `submit_answer` records the answer and changes the question directly to
+  "Submitted". No separate `mark_question_submitted` call is needed.
 - After drafting an answer, ask the user ONCE if they want to submit it.
 - When the user confirms (says "yes", "submit", "correct", "go ahead", etc.),
   IMMEDIATELY call `route_to_legal_agent` or `route_to_tax_agent` with this

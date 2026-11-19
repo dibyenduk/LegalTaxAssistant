@@ -6,8 +6,8 @@
     "location": {
       "value": "${AZURE_LOCATION}"
     },
-    "containerRegistryLoginServer": {
-      "value": "${AZURE_CONTAINER_REGISTRY_ENDPOINT}"
+    "containerRegistryName": {
+      "value": "${AZURE_CONTAINER_REGISTRY_NAME}"
     }
   }
 }

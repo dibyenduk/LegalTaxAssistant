@@ -5,8 +5,9 @@ metadata:
     template: legal-tax-assistant@0.0.1
 services:
     mcp-server:
-        project: ""
+        project: .
         host: containerapp
+        resourceName: ${AZURE_CONTAINER_APP_NAME}
         language: python
         docker:
             path: ./Dockerfile
@@ -15,56 +16,33 @@ services:
     orchestrator:
         project: ./src/orchestrator
         host: azure.ai.agent
-        language: python
+        language: docker
+        kind: hosted
+        name: LegalTaxOrchestrator-3
+        protocols:
+            - protocol: responses
+              version: 2.0.0
+        container:
+            resources:
+                cpu: "1"
+                memory: 2Gi
+        environmentVariables:
+            - name: AZURE_AI_MODEL_DEPLOYMENT_NAME
+              value: ${AZURE_AI_MODEL_DEPLOYMENT_NAME}
+            - name: CLASSIFIER_AGENT_NAME
+              value: ClassifierAgent-2
+            - name: REQUESTOR_AGENT_NAME
+              value: RequestorAgent-2
+            - name: LEGAL_AGENT_NAME
+              value: LegalAgent-2
+            - name: TAX_AGENT_NAME
+              value: TaxAgent-2
+            - name: DKWORKIQ_TOOLBOX_NAME
+              value: DkWorkIQMail
         docker:
             path: ./Dockerfile
             context: .
             remoteBuild: true
-        config:
-            container:
-                resources:
-                    cpu: "0.25"
-                    memory: 0.5Gi
 infra:
     provider: bicep
     path: ./infra
-hooks:
-    postprovision:
-        windows:
-            name: postprovision
-            kind: pwsh
-            shell: pwsh
-            run: |
-                Write-Host "Installing agent provisioning dependencies..."
-                pip install -r src/agents/requirements.txt --quiet
-                $fqdn = azd env get-values | Select-String "AZURE_CONTAINER_APP_FQDN" | ForEach-Object { ($_ -split '=',2)[1].Trim('"') }
-                $mcpUrl = "https://$fqdn/sse"
-                $projectEndpoint = $env:FOUNDRY_PROJECT_ENDPOINT
-                $model = $env:MODEL_DEPLOYMENT_NAME
-                if (-not $projectEndpoint) { Write-Host "FOUNDRY_PROJECT_ENDPOINT not set. Skipping agent provisioning."; exit 0 }
-                if (-not $model) { $model = "gpt-4o" }
-                Write-Host "Provisioning agents..."
-                Write-Host "  MCP Server: $mcpUrl"
-                Write-Host "  Foundry: $projectEndpoint"
-                Write-Host "  Model: $model"
-                $env:PYTHONPATH = "src"
-                python -m agents.provision_agents --project-endpoint $projectEndpoint --model $model --mcp-server-url $mcpUrl
-            continueOnError: true
-            interactive: true
-        posix:
-            shell: bash
-            run: |
-                echo "Installing agent provisioning dependencies..."
-                pip install -r src/agents/requirements.txt --quiet
-                FQDN=$(azd env get-values | grep AZURE_CONTAINER_APP_FQDN | cut -d= -f2 | tr -d '"')
-                MCP_URL="https://$FQDN/sse"
-                PROJECT_ENDPOINT="${FOUNDRY_PROJECT_ENDPOINT:-}"
-                MODEL="${MODEL_DEPLOYMENT_NAME:-gpt-4o}"
-                if [ -z "$PROJECT_ENDPOINT" ]; then echo "FOUNDRY_PROJECT_ENDPOINT not set. Skipping agent provisioning."; exit 0; fi
-                echo "Provisioning agents..."
-                echo "  MCP Server: $MCP_URL"
-                echo "  Foundry: $PROJECT_ENDPOINT"
-                echo "  Model: $MODEL"
-                PYTHONPATH=src python -m agents.provision_agents --project-endpoint "$PROJECT_ENDPOINT" --model "$MODEL" --mcp-server-url "$MCP_URL"
-            continueOnError: true
-            interactive: true
